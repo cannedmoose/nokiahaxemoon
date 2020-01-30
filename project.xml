@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="Moon" package="org.openfl.samples.moon" version="1.0.0" company="OpenFL" />
+	<app main="Main" path="Export" file="Moon" />
+
+	<window background="#43523d" width="84" height="48" antialiasing="0"/>
+	
+	<source path="Source" />
+	
+	<haxelib name="openfl" />
+
+	<template path="Assets/index.html" rename="index.html" />
+	<template path="Assets/favicon.png" rename="favicon.png" />
+	
+</project>
