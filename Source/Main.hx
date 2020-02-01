@@ -12,6 +12,7 @@ import openfl.display.BitmapData;
 import openfl.display.Bitmap;
 import openfl.display.BitmapDataChannel;
 import openfl.media.Sound;
+import openfl.media.SoundTransform;
 import openfl.utils.Assets;
 
 class Main extends Sprite {
@@ -76,7 +77,7 @@ class Main extends Sprite {
 		});
 
     var music:Sound = Assets.getSound("Assets/k2lu.mp3");
-    music.play(0, 999);
+    music.play(0, 999, new SoundTransform(0.6));
 	}
 }
 
