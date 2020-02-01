@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript">
+      window.onload = function() {
+        var LIGHT_COLOR = '#c7f0d8';
+        var DARK_COLOR = '#43523d';
+
+        var CELL_SIZE = 10;
+        var WIDTH = 84;
+        var HEIGHT = 48;
+        var CANVAS = document.getElementById('playground');
+
+        var VRAM = [];
+        for (var row = 0; row < HEIGHT; row++) {
+          var rowData = [];
+          for (var col = 0; col < WIDTH; col++) {
+            rowData.push(false);
+          }
+          VRAM.push(rowData);
+        }
+
+        draw = function() {
+          var ctx = CANVAS.getContext('2d');
+          for (var row = 0; row < VRAM.length; row++) {
+            var rowData = VRAM[row];
+            var rectTop = row * CELL_SIZE;
+            for (var col = 0; col < rowData.length; col++) {
+              var rectLeft = col * CELL_SIZE;
+              ctx.beginPath();
+              ctx.rect(rectLeft, rectTop, CELL_SIZE, CELL_SIZE);
+              ctx.fillStyle = rowData[col] ? DARK_COLOR : LIGHT_COLOR;
+              ctx.fill();
+            }
+          }
+        };
+
+        CANVAS.height = (HEIGHT * CELL_SIZE);
+        CANVAS.width  = (WIDTH * CELL_SIZE);
+
+        CANVAS.addEventListener('click', function(e) {
+          var x = e.offsetX;
+          var y = e.offsetY;
+          var row = Math.floor(y / CELL_SIZE);
+          var col = Math.floor(x / CELL_SIZE);
+          VRAM[row][col] = !VRAM[row][col];
+          draw();
+        });
+
+        draw();
+      };
+    </script>
+  </head>
+  <body>
+    <canvas id="playground"/>
+  </body>
+</html>

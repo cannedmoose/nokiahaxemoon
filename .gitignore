@@ -1,1 +1,5 @@
 Export/
+
+# vim swap and temporary files
+*.swp
+*.swo

@@ -11,6 +11,8 @@ import openfl.Lib.getTimer;
 import openfl.display.BitmapData;
 import openfl.display.Bitmap;
 import openfl.display.BitmapDataChannel;
+import openfl.media.Sound;
+import openfl.utils.Assets;
 
 class Main extends Sprite {
 	public static inline var WhiteColor = 0xc7f0d8;
@@ -72,6 +74,9 @@ class Main extends Sprite {
 			cacheTime = currentTime;
 	
 		});
+
+    var music:Sound = Assets.getSound("Assets/k2lu.mp3");
+    music.play(0, 999);
 	}
 }
 

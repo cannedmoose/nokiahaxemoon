@@ -12,5 +12,7 @@
 
 	<template path="Assets/index.html" rename="index.html" />
 	<template path="Assets/favicon.png" rename="favicon.png" />
+
+  <assets path="Assets/k2lu.mp3" />
 	
 </project>
