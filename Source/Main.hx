@@ -21,6 +21,8 @@ class Main extends Sprite {
 	public static inline var Width = 84;
 	public static inline var Height = 48;
 
+	public static inline var DayFrames = 200;
+
 	public function new() {
 		super();
 
@@ -52,23 +54,31 @@ class Main extends Sprite {
 		dampe.x = 10;
 		dampe.y = 10;
 
+		var frameCounter = 0;
+		this.graphics.beginFill(WhiteColor);
+		this.graphics.drawRect(0, 0, Width, 2);
+
 		var cacheTime = getTimer();
 		this.addEventListener(Event.ENTER_FRAME, function(e) {
 			var currentTime = getTimer();
 			var deltaTime = currentTime - cacheTime;
 			if (deltaTime > 200) {
 				dampe.onFrame();
+				frameCounter += 1;
+				this.graphics.beginFill(BlackColor);
+				this.graphics.drawRect(Width - Width * (frameCounter / DayFrames), 0, Width * (frameCounter / DayFrames), 2);
+				if (frameCounter >= DayFrames) {
+					fillEmptyGraves();
+					this.graphics.beginFill(WhiteColor);
+					this.graphics.drawRect(0, 0, Width, 2);
+					frameCounter = 0;
+				}
 				cacheTime = currentTime;
 			}
 		});
 
 		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
 		music.play(0, 9999, new SoundTransform(0.6));
-
-    var timer = new haxe.Timer(5000);
-    timer.run = function() {
-      fillEmptyGraves();
-    };
 	}
 
 	function createGraveAtPoint(point:Point) {
@@ -92,15 +102,15 @@ class Main extends Sprite {
 		return null;
 	}
 
-  function fillEmptyGraves() {
-    for (i in 0...numChildren) {
+	function fillEmptyGraves() {
+		for (i in 0...numChildren) {
 			var child = getChildAt(i);
 			if (Type.getClass(child) == Grave) {
 				var g:Grave = cast(child, Grave);
-        if (g.getState() == FRESH) {
-          g.setState(FULL);
-        }
+				if (g.getState() == FRESH) {
+					g.setState(FULL);
+				}
 			}
 		}
-  }
+	}
 }
