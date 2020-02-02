@@ -28,6 +28,7 @@ class Main extends Sprite {
 		super();
 
 		Grave.lazyInit();
+    Ghost.initTextures();
 
 		// Enable nokie shader to restrict to monochrome.
 		// this.cacheAsBitmap = true;
@@ -50,6 +51,7 @@ class Main extends Sprite {
 				createGraveAtPoint(worldPos);
 			}
 		}, function(p:Point): Bool {
+      // TODO movement validation at edge of screen
       var dampeRect = dampe.getLocalSpaceCollider().clone();
       dampeRect.offset(p.x, p.y);
       for (i in 0...numChildren) {
@@ -105,6 +107,7 @@ class Main extends Sprite {
 			var deltaTime = currentTime - cacheTime;
 			if (deltaTime > 200) {
 				dampe.onFrame();
+        ghostsOnFrame();
         sortDampe();
 				frameCounter += 1;
 				this.graphics.beginFill(BlackColor);
@@ -119,9 +122,26 @@ class Main extends Sprite {
 			}
 		});
 
+    // TODO painters algo
+    var testGhost = new Ghost();
+    testGhost.x = 60;
+    testGhost.y = 20;
+    addChild(testGhost);
+
 		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
 		music.play(0, 9999, new SoundTransform(0.6));
 	}
+
+  function ghostsOnFrame() {
+    for (i in 0...numChildren) {
+			var child = getChildAt(i);
+      switch Type.getClass(child) {
+        case Ghost:
+          cast(child, Ghost).onFrame();
+        default:
+      }
+		}
+  }
 
 	function createGraveAtPoint(point:Point): Grave {
 		var grave = new Grave();
