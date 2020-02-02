@@ -4,7 +4,7 @@
 	<meta title="Moon" package="org.openfl.samples.moon" version="1.0.0" company="OpenFL" />
 	<app main="Main" path="Export" file="Moon" />
 
-	<window background="#43523d" width="84" height="48" antialiasing="0"/>
+	<window background="#c7f0d8" width="84" height="48" antialiasing="0"/>
 	
 	<source path="Source" />
 	
@@ -14,5 +14,6 @@
 	<template path="Assets/favicon.png" rename="favicon.png" />
 
   <assets path="Assets/k2lu.mp3" />
+	<assets path="Assets/dampe.png" />
 	
 </project>
