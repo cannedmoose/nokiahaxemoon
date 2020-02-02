@@ -27,6 +27,8 @@ class Main extends Sprite {
 	public function new() {
 		super();
 
+    Grave.lazyInit();
+
 		// Enable nokie shader to restrict to monochrome.
 		//this.cacheAsBitmap = true;
 		this.shader = new NokiaShader();
