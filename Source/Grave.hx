@@ -57,7 +57,7 @@ class Grave extends Sprite {
     // TODO load all sprites
     STATE_SPRITES[DIG_1] = new GraveStateBitmapData(
         null,
-        bitmapDataFromRect(spriteSheet, new Rectangle(48, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
+        bitmapDataFromRect(spriteSheet, new Rectangle(47, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
     STATE_SPRITES[DIG_2] = new GraveStateBitmapData(
         null,
         bitmapDataFromRect(spriteSheet, new Rectangle(40, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
