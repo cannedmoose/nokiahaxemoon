@@ -23,6 +23,8 @@ class Main extends Sprite {
 	public function new() {
 		super();
 
+    Grave.lazyInit();
+
 		// Enable nokie shader to restrict to monochrome.
 		// this.cacheAsBitmap = true;
 		this.shader = new NokiaShader();
@@ -39,6 +41,11 @@ class Main extends Sprite {
 			var deltaTime = currentTime - cacheTime;
 			cacheTime = currentTime;
 		});
+
+    var testGrave = new Grave();
+    testGrave.x = 30;
+    testGrave.y = 30;
+    addChild(testGrave);
 
 		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
 		music.play(0, 999, new SoundTransform(0.6));
