@@ -6,6 +6,7 @@ import openfl.display.Graphics;
 import openfl.display.Sprite;
 import openfl.filters.ShaderFilter;
 import openfl.display.DisplayObjectShader;
+import openfl.display.DisplayObject;
 import openfl.display.BlendMode;
 import openfl.events.Event;
 import openfl.Lib.getTimer;
@@ -52,7 +53,7 @@ class Main extends Sprite {
 			}
 		}, function(p:Point): Bool {
       // TODO movement validation at edge of screen
-      var dampeRect = dampe.getLocalSpaceCollider().clone();
+      var dampeRect = Dampe.getLocalSpaceCollider().clone();
       dampeRect.offset(p.x, p.y);
       for (i in 0...numChildren) {
         var child = getChildAt(i);
@@ -79,28 +80,6 @@ class Main extends Sprite {
 		this.graphics.beginFill(WhiteColor);
 		this.graphics.drawRect(0, 0, Width, 2);
 
-    // Sorts dampe for going infront of or behind tombstones.
-    var sortDampe = function() {
-      removeChild(dampe);
-      var newDampeIndex = 0;
-      var dampBase = dampe.y + dampe.getLocalSpaceCollider().y + dampe.getLocalSpaceCollider().height;
-      var tombstoneRect = Grave.localSpaceTombstoneRect();
-      for (i in 0...numChildren) {
-        newDampeIndex = i;
-        var child = getChildAt(i);
-        if (Type.getClass(child) == Grave) {
-          var g:Grave = cast(child, Grave);
-          if (dampBase <= (g.y + tombstoneRect.y + tombstoneRect.height)) {
-            break;
-          }
-        }
-        if (i == numChildren - 1) {
-          newDampeIndex = numChildren;
-        }
-      }
-      addChildAt(dampe, newDampeIndex);
-    };
-
 		var cacheTime = getTimer();
 		this.addEventListener(Event.ENTER_FRAME, function(e) {
 			var currentTime = getTimer();
@@ -108,7 +87,7 @@ class Main extends Sprite {
 			if (deltaTime > 200) {
 				dampe.onFrame();
         ghostsOnFrame();
-        sortDampe();
+        sortChildren();
 				frameCounter += 1;
 				this.graphics.beginFill(BlackColor);
 				this.graphics.drawRect(Width - Width * (frameCounter / DayFrames), 0, Width * (frameCounter / DayFrames), 2);
@@ -122,7 +101,6 @@ class Main extends Sprite {
 			}
 		});
 
-    // TODO painters algo
     var testGhost = new Ghost();
     testGhost.x = 60;
     testGhost.y = 20;
@@ -130,6 +108,8 @@ class Main extends Sprite {
 
 		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
 		music.play(0, 9999, new SoundTransform(0.6));
+
+    sortChildren();
 	}
 
   function ghostsOnFrame() {
@@ -143,30 +123,47 @@ class Main extends Sprite {
 		}
   }
 
+  // Painters algo. Graves + Dampe are sorted based on "base y" so dampe is
+  // behind some tombstones and in front of others.
+  // Ghosts are on top of everything.
+  function sortChildren() {
+    final tombstoneRect = Grave.localSpaceTombstoneRect();
+    final dampeRect = Dampe.getLocalSpaceCollider();
+    var getChildZ = function(child:DisplayObject) {
+      switch Type.getClass(child) {
+        case Grave:
+          return child.y + tombstoneRect.y + tombstoneRect.height;
+        case Dampe:
+          return child.y + dampeRect.y + dampeRect.height;
+        case Ghost:
+          return 999;
+        default:
+          return -1;
+      }
+    };
+    var sortFn = function(a:DisplayObject, b:DisplayObject) {
+      final a_z = getChildZ(a);
+      final b_z = getChildZ(b);
+      if (a_z == b_z) return 0;
+      return (a_z > b_z) ? 1 : -1;
+    };
+    var sortArray = new Array<DisplayObject>();
+    for (i in 0...numChildren) {
+      sortArray.push(getChildAt(i));
+    }
+    sortArray.sort(sortFn);
+    for (i in 0...sortArray.length) {
+      setChildIndex(sortArray[i], i);
+    }
+  }
+
 	function createGraveAtPoint(point:Point): Grave {
 		var grave = new Grave();
 		grave.x = point.x;
 		grave.y = point.y;
+    addChild(grave);
+    sortChildren();
 
-    // Find index to insert grave. Should be ordered by increasing y.
-    var indexToAddAt = 0;
-		for (i in 0...numChildren) {
-      indexToAddAt = i;
-			var child = getChildAt(i);
-			if (Type.getClass(child) == Grave) {
-				var g:Grave = cast(child, Grave);
-        if (g.y > grave.y) {
-          break;
-        }
-			}
-      if (i == numChildren - 1) {
-        indexToAddAt = numChildren;
-      }
-		}
-		addChildAt(grave, indexToAddAt);
-		for (i in 0...numChildren) {
-      var child = getChildAt(i);
-    }
     return grave;
 	}
 
