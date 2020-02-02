@@ -26,7 +26,9 @@ class Main extends Sprite {
 		// Enable nokie shader to restrict to monochrome.
 		// this.cacheAsBitmap = true;
 		this.shader = new NokiaShader();
-		var dampe = new Dampe();
+		var dampe = new Dampe(function(point) {
+			trace("digging at", point);
+		});
 		addChild(dampe);
 		dampe.init();
 		dampe.x = 10;

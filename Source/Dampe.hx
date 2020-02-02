@@ -33,14 +33,16 @@ class Dampe extends Sprite {
 	var sprite:Bitmap;
 	var direction:Point;
 	var flip = false;
+	var digCallback:Point->Void;
 
-	public function new() {
+	public function new(digCallback:Point->Void) {
 		super();
 
 		this.state = Standing(0);
 		this.spriteSheet = Assets.getBitmapData("Assets/dampe_alt.png");
 		this.sprite = new Bitmap(new BitmapData(Width, Height, true, 0xFFFFFFFF));
 		this.direction = new Point(0, 0);
+		this.digCallback = digCallback;
 		addChild(this.sprite);
 		this.updateSprite();
 	}
@@ -52,32 +54,40 @@ class Dampe extends Sprite {
 			var currentTime = getTimer();
 			var deltaTime = currentTime - cacheTime;
 			if (deltaTime > 500) {
-				switch (this.state) {
-					case Standing(frame):
-						this.state = Standing((frame + 1) % 4);
-					case Walking(frame):
-						// Actually take a step and reset direction
-						if (frame % 2 == 1) {
-							this.x += this.direction.x;
-							this.y += this.direction.y;
-							this.direction.x = 0;
-							this.direction.y = 0;
-							this.state = Standing((frame + 1) % 4);
-						} else {
-							// They should move one frame on the second frame of walking
-							this.state = Walking((frame + 1) % 4);
-						}
-					case Digging(frame):
-						if (frame == 6) {
-							this.state = Standing(0);
-						} else {
-							this.state = Digging((frame + 1) % 7);
-						}
-				}
-				this.updateSprite();
+				this.onFrame();
 				cacheTime = currentTime;
 			}
 		});
+	}
+
+	public function onFrame() {
+		switch (this.state) {
+			case Standing(frame):
+				this.state = Standing((frame + 1) % 4);
+			case Walking(frame):
+				// Actually take a step and reset direction
+				if (frame % 2 == 1) {
+					this.x += this.direction.x;
+					this.y += this.direction.y;
+					this.direction.x = 0;
+					this.direction.y = 0;
+					this.state = Standing((frame + 1) % 4);
+				} else {
+					// They should move one frame on the second frame of walking
+					this.state = Walking((frame + 1) % 4);
+				}
+			case Digging(frame):
+				if (frame == 6) {
+					this.state = Standing(0);
+				} else {
+					if (frame == 2) {
+						// Spawn hole
+						this.digCallback(new Point(2, 11));
+					}
+					this.state = Digging((frame + 1) % 7);
+				}
+		}
+		this.updateSprite();
 	}
 
 	private function onKeyDown(e:KeyboardEvent) {
