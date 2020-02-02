@@ -86,7 +86,7 @@ class Dampe extends Sprite {
 						if (flip) {
 							this.digCallback(new Point(14, 11));
 						} else {
-							this.digCallback(new Point(3, 11));
+							this.digCallback(new Point(2, 11));
 						}
 					}
 					this.state = Digging((frame + 1) % 7);
