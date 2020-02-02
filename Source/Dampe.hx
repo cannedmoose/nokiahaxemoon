@@ -53,7 +53,7 @@ class Dampe extends Sprite {
 		this.addEventListener(Event.ENTER_FRAME, function(e) {
 			var currentTime = getTimer();
 			var deltaTime = currentTime - cacheTime;
-			if (deltaTime > 500) {
+			if (deltaTime > 200) {
 				this.onFrame();
 				cacheTime = currentTime;
 			}
