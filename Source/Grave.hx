@@ -1,32 +1,49 @@
 package;
 
+import openfl.display.Bitmap;
+import openfl.display.BitmapData;
+import openfl.display.Sprite;
 import openfl.geom.Point;
+import openfl.geom.Rectangle;
+import openfl.utils.Assets;
 
-class Grave {
-  public enum GraveState {
-    // Just been dug
-    FRESH
-  }
-  private static Map<GraveState, BitmapData> STATE_SPRITES = null;
+enum GraveState {
+  // Just been dug
+  FRESH;
+
+  // TODO all states.
+}
+
+// Position == "center of initial hole"
+class Grave extends Sprite {
+  private static var STATE_SPRITES:Map<GraveState, BitmapData> = null;
 
   public static function lazyInit() {
-    if (SPRITE_SHEET != null) {
+    if (STATE_SPRITES != null) {
       return;
     }
-    var spriteSheet = Assets.getBitmapData("graves.png", false);
+    var spriteSheet = Assets.getBitmapData("Assets/graves.png", false);
     STATE_SPRITES = new Map();
+
+    // TODO load all sprites
     {
-      var d = new BitmapData(16, 16, true);
-      d.copyPixels(spriteSheet, new Rectangle(0, 0, 16, 16), new Point(0, 0));
+      var d = new BitmapData(7, 7, true);
+      d.copyPixels(spriteSheet, new Rectangle(0, 0, 7, 7), new Point(0, 0));
       STATE_SPRITES[FRESH] = d;
     }
   }
 
-  // The center of the initial hole.
-  private final Point origin;
+  private var state:GraveState = GraveState.FRESH;
 
-  public function new(origin:Point) {
+  public function new() {
+    super();
+
     lazyInit();
-    this.origin = origin;
+    updateRenderSprite();
+  }
+
+  private function updateRenderSprite() {
+    removeChildren();
+    addChild(new Bitmap(STATE_SPRITES[this.state]));
   }
 }
