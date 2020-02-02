@@ -119,13 +119,13 @@ class Grave extends Sprite {
     removeChildren();
     var data = STATE_SPRITES[this.state];
     if (data.tombstone != null) {
-      var g = new Bitmap(data.tombstone.clone());
+      var g = new Bitmap(data.tombstone);
       g.x = - TOMBSTONE_WIDTH / 2 - 1;
       g.y = - GRAVE_HEIGHT - TOMBSTONE_HEIGHT / 2 - 1;
       addChild(g);
     }
     if (data.grave != null) {
-      var g = new Bitmap(data.grave.clone());
+      var g = new Bitmap(data.grave);
       g.x = - GRAVE_WIDTH / 2 - 1;
       g.y = - GRAVE_HEIGHT / 2 - 1;
       holeIntersectionSprite = g;
