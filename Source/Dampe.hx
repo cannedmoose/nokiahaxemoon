@@ -10,11 +10,18 @@ import openfl.ui.Keyboard;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
 
-// Spritesheet is 3x3 with 8 filled slots
-// from top left going right
+// Spritesheet is 3x4 with 10 filled slots
+// standing/walking slots with shovel raised/lowered
+// 0 - standing
+// 1 - walking
+// 2 - standing
+// 3 - walking
+// 4:10 - digging
+
 enum State {
-	Standing(frame:Int); // First 2 frames
-	Digging(frame:Int); // next 6 frames
+	Standing(frame:Int);
+	Walking(frame:Int);
+	Digging(frame:Int);
 }
 
 class Dampe extends Sprite {
@@ -23,35 +30,49 @@ class Dampe extends Sprite {
 
 	var state:State;
 	var spriteSheet:BitmapData;
-	var sprite:BitmapData;
+	var sprite:Bitmap;
 	var direction:Point;
+	var flip = false;
 
 	public function new() {
 		super();
 
 		this.state = Standing(0);
 		this.spriteSheet = Assets.getBitmapData("Assets/dampe.png");
-		this.sprite = new BitmapData(Width, Height, true, 0xFFFFFFFF);
+		this.sprite = new Bitmap(new BitmapData(Width, Height, true, 0xFFFFFFFF));
 		this.direction = new Point(0, 0);
-		addChild(new Bitmap(this.sprite));
+		addChild(this.sprite);
 		this.updateSprite();
 	}
 
 	public function init() {
 		var cacheTime = getTimer();
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-		stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 		this.addEventListener(Event.ENTER_FRAME, function(e) {
 			var currentTime = getTimer();
 			var deltaTime = currentTime - cacheTime;
 			if (deltaTime > 500) {
 				switch (this.state) {
 					case Standing(frame):
-						this.state = Standing((frame + 1) % 2);
-						this.x += this.direction.x;
-						this.y += this.direction.y;
+						this.state = Standing((frame + 1) % 4);
+					case Walking(frame):
+						// Actually take a step and reset direction
+						if (frame % 2 == 1) {
+							this.x += this.direction.x;
+							this.y += this.direction.y;
+							this.direction.x = 0;
+							this.direction.y = 0;
+							this.state = Standing((frame + 1) % 4);
+						} else {
+							// They should move one frame on the second frame of walking
+							this.state = Walking((frame + 1) % 4);
+						}
 					case Digging(frame):
-						this.state = Standing((frame + 1) % 6);
+						if (frame == 5) {
+							this.state = Standing(0);
+						} else {
+							this.state = Digging((frame + 1) % 6);
+						}
 				}
 				this.updateSprite();
 				cacheTime = currentTime;
@@ -60,26 +81,46 @@ class Dampe extends Sprite {
 	}
 
 	private function onKeyDown(e:KeyboardEvent) {
-		if (e.keyCode == Keyboard.W) {
-			this.direction.y = -1;
-		} else if (e.keyCode == Keyboard.S) {
-			this.direction.y = 1;
-		} else if (e.keyCode == Keyboard.A) {
-			this.direction.x = -1;
-		} else if (e.keyCode == Keyboard.D) {
-			this.direction.x = 1;
-		}
-	}
-
-	private function onKeyUp(e:KeyboardEvent) {
-		if (e.keyCode == Keyboard.W) {
-			this.direction.y = 0;
-		} else if (e.keyCode == Keyboard.S) {
-			this.direction.y = 0;
-		} else if (e.keyCode == Keyboard.A) {
-			this.direction.x = 0;
-		} else if (e.keyCode == Keyboard.D) {
-			this.direction.x = 0;
+		switch (this.state) {
+			case Standing(frame):
+				if (e.keyCode == Keyboard.W) {
+					this.direction.y = -1;
+					this.state = Walking(Math.floor(frame / 2) * 2);
+				} else if (e.keyCode == Keyboard.S) {
+					this.direction.y = 1;
+					this.state = Walking(Math.floor(frame / 2) * 2);
+				} else if (e.keyCode == Keyboard.A) {
+					this.direction.x = -1;
+					this.flip = false;
+					this.state = Walking(Math.floor(frame / 2) * 2);
+				} else if (e.keyCode == Keyboard.D) {
+					this.direction.x = 1;
+					this.flip = true;
+					this.state = Walking(Math.floor(frame / 2) * 2);
+				} else if (e.keyCode == Keyboard.E) {
+					this.state = Digging(0);
+				}
+			case Walking(frame):
+				if (e.keyCode == Keyboard.W) {
+					this.direction.y = -1;
+					this.direction.x = 0;
+				} else if (e.keyCode == Keyboard.S) {
+					this.direction.y = 1;
+					this.direction.x = 0;
+				} else if (e.keyCode == Keyboard.A) {
+					this.direction.x = -1;
+					this.direction.y = 0;
+					this.flip = false;
+				} else if (e.keyCode == Keyboard.D) {
+					this.direction.x = 1;
+					this.direction.y = 0;
+					this.flip = true;
+				} else if (e.keyCode == Keyboard.E) {
+					this.state = Digging(0);
+				}
+			case Digging(frame):
+				// No-op
+				return;
 		}
 	}
 
@@ -87,13 +128,22 @@ class Dampe extends Sprite {
 		var index = 0;
 		switch (this.state) {
 			case Standing(frame):
+				index = Math.floor(frame / 2) * 2;
+			case Walking(frame):
 				index = frame;
 			case Digging(frame):
-				index = frame + 2;
+				index = frame + 4;
 		}
-
 		var x = (index % 3) * Width;
-		var y = Math.round(index / 3) * Height;
-		this.sprite.copyPixels(this.spriteSheet, new Rectangle(x, y, x + Width, y + height), new Point(0, 0));
+
+		var y = Math.floor(index / 3) * Height;
+		this.sprite.bitmapData.copyPixels(this.spriteSheet, new Rectangle(x, y, x + Width, y + height), new Point(0, 0));
+		if (this.flip) {
+			this.sprite.x = Width + 2;
+			this.sprite.scaleX = -1;
+		} else {
+			this.sprite.scaleX = 1;
+			this.sprite.x = 0;
+		}
 	}
 }
