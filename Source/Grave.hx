@@ -83,10 +83,14 @@ class Grave extends Sprite {
     return state;
   }
 
+  public static function localSpaceTombstoneRect(): Rectangle {
+    var tombstoneNonCollidingHeight = 6;
+    return new Rectangle(
+        - TOMBSTONE_WIDTH / 2 - 1, - GRAVE_HEIGHT  - TOMBSTONE_HEIGHT / 2 - 1 + tombstoneNonCollidingHeight,
+        TOMBSTONE_WIDTH + 1, TOMBSTONE_HEIGHT + 1 - tombstoneNonCollidingHeight);
+  }
+
   public function localSpacePathingCollisionRect(): Rectangle {
-    var tombstoneRect = new Rectangle(
-        - GRAVE_WIDTH / 2 - 1, - GRAVE_HEIGHT  - TOMBSTONE_HEIGHT / 2 - 1,
-        GRAVE_WIDTH + 1, GRAVE_HEIGHT + 1);
     var holeRect = new Rectangle(
         - GRAVE_WIDTH / 2 - 1, - GRAVE_HEIGHT / 2 - 1,
         GRAVE_WIDTH + 1, GRAVE_HEIGHT + 1);
@@ -98,7 +102,7 @@ class Grave extends Sprite {
       case FRESH:
         return holeRect;
       case FULL:
-        return tombstoneRect;
+        return localSpaceTombstoneRect();
     }
   }
 
