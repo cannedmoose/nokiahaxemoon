@@ -132,7 +132,7 @@ class Dampe extends Sprite {
 			case Walking(frame):
 				index = frame;
 			case Digging(frame):
-				index = frame + 4;
+				index = frame + 3;
 		}
 		var x = (index % 3) * Width;
 
