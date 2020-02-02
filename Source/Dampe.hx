@@ -38,7 +38,7 @@ class Dampe extends Sprite {
 		super();
 
 		this.state = Standing(0);
-		this.spriteSheet = Assets.getBitmapData("Assets/dampe.png");
+		this.spriteSheet = Assets.getBitmapData("Assets/dampe_alt.png");
 		this.sprite = new Bitmap(new BitmapData(Width, Height, true, 0xFFFFFFFF));
 		this.direction = new Point(0, 0);
 		addChild(this.sprite);
@@ -68,10 +68,10 @@ class Dampe extends Sprite {
 							this.state = Walking((frame + 1) % 4);
 						}
 					case Digging(frame):
-						if (frame == 5) {
+						if (frame == 6) {
 							this.state = Standing(0);
 						} else {
-							this.state = Digging((frame + 1) % 6);
+							this.state = Digging((frame + 1) % 7);
 						}
 				}
 				this.updateSprite();
