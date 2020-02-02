@@ -3,6 +3,7 @@ import openfl.utils.Assets;
 import openfl.display.BitmapData;
 import openfl.display.Bitmap;
 import openfl.display.BitmapDataChannel;
+import openfl.display.Shape;
 import openfl.geom.Rectangle;
 import openfl.geom.Point;
 import openfl.Lib.getTimer;
@@ -34,8 +35,9 @@ class Dampe extends Sprite {
 	var direction:Point;
 	var flip = false;
 	var digCallback:Point->Void;
+  var movementValidationCallback:Point->Bool;
 
-	public function new(digCallback:Point->Void) {
+	public function new(digCallback:Point->Void, movementValidationCallback:Point->Bool) {
 		super();
 
 		this.state = Standing(0);
@@ -43,6 +45,7 @@ class Dampe extends Sprite {
 		this.sprite = new Bitmap(new BitmapData(Width, Height, true, 0xFFFFFFFF));
 		this.direction = new Point(0, 0);
 		this.digCallback = digCallback;
+    this.movementValidationCallback = movementValidationCallback;
 		addChild(this.sprite);
 		this.updateSprite();
 	}
@@ -52,6 +55,10 @@ class Dampe extends Sprite {
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 	}
 
+  public function getLocalSpaceCollider(): Rectangle {
+    return new Rectangle(6, 11, 3, 1);
+  }
+
 	public function onFrame() {
 		switch (this.state) {
 			case Standing(frame):
@@ -59,8 +66,10 @@ class Dampe extends Sprite {
 			case Walking(frame):
 				// Actually take a step and reset direction
 				if (frame % 2 == 1) {
-					this.x += this.direction.x;
-					this.y += this.direction.y;
+          if (movementValidationCallback(new Point(this.x + direction.x, this.y + direction.y))) {
+            this.x += this.direction.x;
+            this.y += this.direction.y;
+          }
 					this.direction.x = 0;
 					this.direction.y = 0;
 					this.state = Standing((frame + 1) % 4);

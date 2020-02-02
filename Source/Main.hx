@@ -12,6 +12,7 @@ import openfl.Lib.getTimer;
 import openfl.media.Sound;
 import openfl.media.SoundTransform;
 import openfl.geom.Point;
+import openfl.geom.Rectangle;
 import openfl.utils.Assets;
 
 class Main extends Sprite {
@@ -48,7 +49,25 @@ class Main extends Sprite {
 			} else {
 				createGraveAtPoint(worldPos);
 			}
-		});
+		}, function(p:Point): Bool {
+      var dampeRect = dampe.getLocalSpaceCollider().clone();
+      dampeRect.offset(p.x, p.y);
+      for (i in 0...numChildren) {
+        var child = getChildAt(i);
+        if (Type.getClass(child) == Grave) {
+          var g:Grave = cast(child, Grave);
+          var gRect = g.localSpacePathingCollisionRect();
+          if (gRect != null) {
+            gRect = gRect.clone();
+            gRect.offset(g.x, g.y);
+            if (dampeRect.intersects(gRect)) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    });
 		addChild(dampe);
 		dampe.init();
 		dampe.x = 10;

@@ -83,6 +83,25 @@ class Grave extends Sprite {
     return state;
   }
 
+  public function localSpacePathingCollisionRect(): Rectangle {
+    var tombstoneRect = new Rectangle(
+        - GRAVE_WIDTH / 2 - 1, - GRAVE_HEIGHT  - TOMBSTONE_HEIGHT / 2 - 1,
+        GRAVE_WIDTH + 1, GRAVE_HEIGHT + 1);
+    var holeRect = new Rectangle(
+        - GRAVE_WIDTH / 2 - 1, - GRAVE_HEIGHT / 2 - 1,
+        GRAVE_WIDTH + 1, GRAVE_HEIGHT + 1);
+    switch state {
+      case DIG_1:
+        return holeRect;
+      case DIG_2:
+        return holeRect;
+      case FRESH:
+        return holeRect;
+      case FULL:
+        return tombstoneRect;
+    }
+  }
+
   public function setState(state:GraveState) {
     this.state = state;
     updateRenderSprite();
