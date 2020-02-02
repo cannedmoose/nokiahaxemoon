@@ -64,6 +64,11 @@ class Main extends Sprite {
 
 		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
 		music.play(0, 9999, new SoundTransform(0.6));
+
+    var timer = new haxe.Timer(5000);
+    timer.run = function() {
+      fillEmptyGraves();
+    };
 	}
 
 	function createGraveAtPoint(point:Point) {
@@ -86,4 +91,16 @@ class Main extends Sprite {
 		}
 		return null;
 	}
+
+  function fillEmptyGraves() {
+    for (i in 0...numChildren) {
+			var child = getChildAt(i);
+			if (Type.getClass(child) == Grave) {
+				var g:Grave = cast(child, Grave);
+        if (g.getState() == FRESH) {
+          g.setState(FULL);
+        }
+			}
+		}
+  }
 }
