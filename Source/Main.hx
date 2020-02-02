@@ -42,6 +42,16 @@ class Main extends Sprite {
 			cacheTime = currentTime;
 		});
 
+    var testDig1Grave = new Grave();
+    testDig1Grave.x = 14;
+    testDig1Grave.y = 30;
+    testDig1Grave.setState(DIG_1);
+    addChild(testDig1Grave);
+    var testDig2Grave = new Grave();
+    testDig2Grave.x = 22;
+    testDig2Grave.y = 30;
+    testDig2Grave.setState(DIG_2);
+    addChild(testDig2Grave);
     var testFreshGrave = new Grave();
     testFreshGrave.x = 30;
     testFreshGrave.y = 30;

@@ -9,6 +9,10 @@ import openfl.utils.Assets;
 
 // TODO maybe separate grave and tombstone state?
 enum GraveState {
+  // Digging in progress.
+  DIG_1;
+  DIG_2;
+
   // Just been dug
   FRESH;
 
@@ -36,6 +40,12 @@ class Grave extends Sprite {
 
   private static var STATE_SPRITES:Map<GraveState, GraveStateBitmapData> = null;
 
+  private static function bitmapDataFromRect(source:BitmapData, rect:Rectangle): BitmapData {
+    var t = new BitmapData(cast (rect.width, Int), cast(rect.height, Int), true);
+    t.copyPixels(source, rect, new Point(0, 0));
+    return t;
+  }
+
   public static function lazyInit() {
     if (STATE_SPRITES != null) {
       return;
@@ -44,18 +54,18 @@ class Grave extends Sprite {
     STATE_SPRITES = new Map();
 
     // TODO load all sprites
-    {
-      var t = new BitmapData(TOMBSTONE_WIDTH, TOMBSTONE_HEIGHT, true);
-      t.copyPixels(spriteSheet, new Rectangle(0, 0, TOMBSTONE_WIDTH, TOMBSTONE_HEIGHT), new Point(0, 0));
-      var g = new BitmapData(GRAVE_WIDTH, GRAVE_HEIGHT, true);
-      g.copyPixels(spriteSheet, new Rectangle(0, 7, GRAVE_WIDTH, GRAVE_HEIGHT), new Point(0, 0));
-      STATE_SPRITES[FULL] = new GraveStateBitmapData(t, g);
-    }
-    {
-      var d = new BitmapData(GRAVE_WIDTH, GRAVE_HEIGHT, true);
-      d.copyPixels(spriteSheet, new Rectangle(32, 7, GRAVE_WIDTH, GRAVE_HEIGHT), new Point(0, 0));
-      STATE_SPRITES[FRESH] = new GraveStateBitmapData(null, d);
-    }
+    STATE_SPRITES[DIG_1] = new GraveStateBitmapData(
+        null,
+        bitmapDataFromRect(spriteSheet, new Rectangle(48, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
+    STATE_SPRITES[DIG_2] = new GraveStateBitmapData(
+        null,
+        bitmapDataFromRect(spriteSheet, new Rectangle(40, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
+    STATE_SPRITES[FRESH] = new GraveStateBitmapData(
+        null,
+        bitmapDataFromRect(spriteSheet, new Rectangle(32, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
+    STATE_SPRITES[FULL] = new GraveStateBitmapData(
+        bitmapDataFromRect(spriteSheet, new Rectangle(0, 0, TOMBSTONE_WIDTH, TOMBSTONE_HEIGHT)),
+        bitmapDataFromRect(spriteSheet, new Rectangle(0, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
   }
 
   private var state:GraveState = GraveState.FRESH;
