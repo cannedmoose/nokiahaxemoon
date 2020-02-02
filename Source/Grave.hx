@@ -69,7 +69,7 @@ class Grave extends Sprite {
         bitmapDataFromRect(spriteSheet, new Rectangle(0, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
   }
 
-  private var state:GraveState = GraveState.FRESH;
+  private var state:GraveState = GraveState.DIG_1;
   private var holeIntersectionSprite: DisplayObject = null;
 
   public function new() {
@@ -77,6 +77,10 @@ class Grave extends Sprite {
 
     lazyInit();
     updateRenderSprite();
+  }
+
+  public function getState(): GraveState {
+    return state;
   }
 
   public function setState(state:GraveState) {

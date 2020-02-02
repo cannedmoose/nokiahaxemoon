@@ -29,8 +29,23 @@ class Main extends Sprite {
 		// Enable nokie shader to restrict to monochrome.
 		// this.cacheAsBitmap = true;
 		this.shader = new NokiaShader();
-		var dampe = new Dampe(function(point) {
+		var dampe:Dampe;
+    dampe = new Dampe(function(point) {
 			trace("digging at", point);
+      var worldPos = new Point(dampe.x + point.x, dampe.y + point.y);
+      var existingGrave = findGraveHoleIntersecting(worldPos);
+      if (existingGrave != null) {
+        switch existingGrave.getState() {
+          case DIG_1:
+            existingGrave.setState(DIG_2);
+          case DIG_2:
+            existingGrave.setState(FRESH);
+          case FRESH:
+          case FULL:
+        }
+      } else {
+        createGraveAtPoint(worldPos);
+      }
 		});
 		addChild(dampe);
 		dampe.init();
@@ -45,36 +60,16 @@ class Main extends Sprite {
 			cacheTime = currentTime;
 		});
 
-		var testDig1Grave = createGraveAtPoint(new Point(14, 30));
-		testDig1Grave.setState(DIG_1);
-		addChild(testDig1Grave);
-		var testDig2Grave = createGraveAtPoint(new Point(22, 30));
-		testDig2Grave.setState(DIG_2);
-		addChild(testDig2Grave);
-		var testFreshGrave = createGraveAtPoint(new Point(30, 30));
-		addChild(testFreshGrave);
-		var testFullGrave = createGraveAtPoint(new Point(38, 30));
-		testFullGrave.setState(FULL);
-		addChild(testFullGrave);
-
-		{
-			var g = findGraveHoleIntersecting(new Point(31, 32));
-			trace("intersecting grave");
-			trace(g);
-			trace(g == testFreshGrave);
-			trace(g == testFullGrave);
-		}
-
 		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
 		music.play(0, 9999, new SoundTransform(0.6));
 	}
 
-	function createGraveAtPoint(point:Point):Grave {
-		var grave = new Grave();
-		grave.x = point.x;
-		grave.y = point.y;
-		return grave;
-	}
+  function createGraveAtPoint(point:Point) {
+    var grave = new Grave();
+    grave.x = point.x;
+    grave.y = point.y;
+    addChildAt(grave, 0);
+  }
 
 	// Result may be null
 	function findGraveHoleIntersecting(point:Point):Grave {
