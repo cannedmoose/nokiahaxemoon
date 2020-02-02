@@ -42,10 +42,15 @@ class Main extends Sprite {
 			cacheTime = currentTime;
 		});
 
-    var testGrave = new Grave();
-    testGrave.x = 30;
-    testGrave.y = 30;
-    addChild(testGrave);
+    var testFreshGrave = new Grave();
+    testFreshGrave.x = 30;
+    testFreshGrave.y = 30;
+    addChild(testFreshGrave);
+    var testFullGrave = new Grave();
+    testFullGrave.x = 38;
+    testFullGrave.y = 30;
+    testFullGrave.setState(FULL);
+    addChild(testFullGrave);
 
 		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
 		music.play(0, 999, new SoundTransform(0.6));
