@@ -50,14 +50,6 @@ class Dampe extends Sprite {
 	public function init() {
 		var cacheTime = getTimer();
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-		this.addEventListener(Event.ENTER_FRAME, function(e) {
-			var currentTime = getTimer();
-			var deltaTime = currentTime - cacheTime;
-			if (deltaTime > 200) {
-				this.onFrame();
-				cacheTime = currentTime;
-			}
-		});
 	}
 
 	public function onFrame() {

@@ -30,46 +30,48 @@ class Main extends Sprite {
 		// this.cacheAsBitmap = true;
 		this.shader = new NokiaShader();
 		var dampe:Dampe;
-    dampe = new Dampe(function(point) {
+		dampe = new Dampe(function(point) {
 			trace("digging at", point);
-      var worldPos = new Point(dampe.x + point.x, dampe.y + point.y);
-      var existingGrave = findGraveHoleIntersecting(worldPos);
-      if (existingGrave != null) {
-        switch existingGrave.getState() {
-          case DIG_1:
-            existingGrave.setState(DIG_2);
-          case DIG_2:
-            existingGrave.setState(FRESH);
-          case FRESH:
-          case FULL:
-        }
-      } else {
-        createGraveAtPoint(worldPos);
-      }
+			var worldPos = new Point(dampe.x + point.x, dampe.y + point.y);
+			var existingGrave = findGraveHoleIntersecting(worldPos);
+			if (existingGrave != null) {
+				switch existingGrave.getState() {
+					case DIG_1:
+						existingGrave.setState(DIG_2);
+					case DIG_2:
+						existingGrave.setState(FRESH);
+					case FRESH:
+					case FULL:
+				}
+			} else {
+				createGraveAtPoint(worldPos);
+			}
 		});
 		addChild(dampe);
 		dampe.init();
 		dampe.x = 10;
 		dampe.y = 10;
 
-		var speed = 1 / 1000;
 		var cacheTime = getTimer();
-		addEventListener(Event.ENTER_FRAME, function(e) {
+		this.addEventListener(Event.ENTER_FRAME, function(e) {
 			var currentTime = getTimer();
 			var deltaTime = currentTime - cacheTime;
-			cacheTime = currentTime;
+			if (deltaTime > 200) {
+				dampe.onFrame();
+				cacheTime = currentTime;
+			}
 		});
 
 		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
 		music.play(0, 9999, new SoundTransform(0.6));
 	}
 
-  function createGraveAtPoint(point:Point) {
-    var grave = new Grave();
-    grave.x = point.x;
-    grave.y = point.y;
-    addChildAt(grave, 0);
-  }
+	function createGraveAtPoint(point:Point) {
+		var grave = new Grave();
+		grave.x = point.x;
+		grave.y = point.y;
+		addChildAt(grave, 0);
+	}
 
 	// Result may be null
 	function findGraveHoleIntersecting(point:Point):Grave {
