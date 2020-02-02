@@ -4,7 +4,7 @@
 	<meta title="Moon" package="org.openfl.samples.moon" version="1.0.0" company="OpenFL" />
 	<app main="Main" path="Export" file="Moon" />
 
-	<window background="#c7f0d8" width="84" height="48" antialiasing="0"/>
+	<window background="#43523d" width="84" height="48" antialiasing="0"/>
 	
 	<source path="Source" />
 	
