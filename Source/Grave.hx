@@ -2,6 +2,7 @@ package;
 
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
+import openfl.display.DisplayObject;
 import openfl.display.Sprite;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
@@ -69,6 +70,7 @@ class Grave extends Sprite {
   }
 
   private var state:GraveState = GraveState.FRESH;
+  private var holeIntersectionSprite: DisplayObject = null;
 
   public function new() {
     super();
@@ -80,6 +82,10 @@ class Grave extends Sprite {
   public function setState(state:GraveState) {
     this.state = state;
     updateRenderSprite();
+  }
+
+  public function intersectsHole(point:Point): Bool {
+    return holeIntersectionSprite == null ? false : holeIntersectionSprite.hitTestPoint(point.x, point.y);
   }
 
   private function updateRenderSprite() {
@@ -95,7 +101,10 @@ class Grave extends Sprite {
       var g = new Bitmap(data.grave.clone());
       g.x = - GRAVE_WIDTH / 2 - 1;
       g.y = - GRAVE_HEIGHT / 2 - 1;
+      holeIntersectionSprite = g;
       addChild(g);
+    } else {
+      holeIntersectionSprite = null;
     }
   }
 }

@@ -11,6 +11,7 @@ import openfl.events.Event;
 import openfl.Lib.getTimer;
 import openfl.media.Sound;
 import openfl.media.SoundTransform;
+import openfl.geom.Point;
 import openfl.utils.Assets;
 
 class Main extends Sprite {
@@ -42,27 +43,48 @@ class Main extends Sprite {
 			cacheTime = currentTime;
 		});
 
-    var testDig1Grave = new Grave();
-    testDig1Grave.x = 14;
-    testDig1Grave.y = 30;
+    var testDig1Grave = createGraveAtPoint(new Point(14, 30));
     testDig1Grave.setState(DIG_1);
     addChild(testDig1Grave);
-    var testDig2Grave = new Grave();
-    testDig2Grave.x = 22;
-    testDig2Grave.y = 30;
+    var testDig2Grave = createGraveAtPoint(new Point(22, 30));
     testDig2Grave.setState(DIG_2);
     addChild(testDig2Grave);
-    var testFreshGrave = new Grave();
-    testFreshGrave.x = 30;
-    testFreshGrave.y = 30;
+    var testFreshGrave = createGraveAtPoint(new Point(30, 30));
     addChild(testFreshGrave);
-    var testFullGrave = new Grave();
-    testFullGrave.x = 38;
-    testFullGrave.y = 30;
+    var testFullGrave = createGraveAtPoint(new Point(38, 30));
     testFullGrave.setState(FULL);
     addChild(testFullGrave);
 
+    {
+      var g = findGraveHoleIntersecting(new Point(31, 32));
+      trace("intersecting grave");
+      trace(g);
+      trace(g == testFreshGrave);
+      trace(g == testFullGrave);
+    }
+
 		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
-		music.play(0, 999, new SoundTransform(0.6));
+		music.play(0, 9999, new SoundTransform(0.6));
 	}
+
+  function createGraveAtPoint(point:Point): Grave {
+    var grave = new Grave();
+    grave.x = point.x;
+    grave.y = point.y;
+    return grave;
+  }
+
+  // Result may be null
+  function findGraveHoleIntersecting(point:Point): Grave {
+    for (i in 0...numChildren) {
+      var child = getChildAt(i);
+      if (Type.getClass(child) == Grave) {
+        var g:Grave = cast(child, Grave);
+        if (g.intersectsHole(point)) {
+          return g;
+        }
+      }
+    }
+    return null;
+  }
 }
