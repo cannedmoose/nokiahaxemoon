@@ -13,6 +13,7 @@ class AudioManager {
 
   private var backgroundMusicChannel:SoundChannel;
   private var isNonMusicSoundPlaying = false;
+  private var musicStartTime:Float = 0;
 
   public function new() {
     backgroundMusic = Assets.getSound("Assets/k2lu.mp3");
@@ -30,6 +31,7 @@ class AudioManager {
     }
     isNonMusicSoundPlaying = true;
 
+    musicStartTime = backgroundMusicChannel.position;
     backgroundMusicChannel.stop();
     s.play(0, 1);
     markCurrentSoundCompleteAfter(timeMS);
@@ -46,5 +48,6 @@ class AudioManager {
 
   private function resumeBackgroundMusic() {
     backgroundMusicChannel = backgroundMusic.play(0, 9999, new SoundTransform(0.6));
+    backgroundMusicChannel.position = musicStartTime;
   }
 }
