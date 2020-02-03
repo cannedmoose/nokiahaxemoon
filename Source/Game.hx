@@ -62,6 +62,10 @@ class Game extends Sprite {
             existingGrave.setState(FRESH);
           case FRESH:
           case FULL:
+            audioManager.playAlert();
+            existingGrave.setState(DEFILED);
+            createGhostAtPoint(existingGrave.x, existingGrave.y);
+          case DEFILED:
         }
       } else {
         createGraveAtPoint(worldPos);
@@ -101,12 +105,6 @@ class Game extends Sprite {
     dampe.x = 10;
     dampe.y = 10;
 
-    var testGhost = new Ghost();
-    testGhost.x = 60;
-    testGhost.y = 20;
-    addChild(testGhost);
-
-
     sortChildren();
   }
 
@@ -126,6 +124,8 @@ class Game extends Sprite {
           }
       }
     }
+
+    // TODO if Dampe is stuck, un-stuck him
   };
 
   public function onFrame(frame:Int) {
@@ -209,6 +209,20 @@ class Game extends Sprite {
     for (i in 0...sortArray.length) {
       setChildIndex(sortArray[i], i);
     }
+  }
+
+  function createGhostAtPoint(x:Float, y:Float):Ghost {
+    var collider = Ghost.localSpaceCollider();
+    var ghost = new Ghost();
+    // Ok, it doesn't actually spawn at the specified point (uncomment the
+    // collider stuff if you want that). Having it spawn away from the grave
+    // makes it a bit clearer visually.
+    ghost.x = x;// + collider.x - collider.width / 2;
+    ghost.y = y;// + collider.y - collider.height / 2;
+    addChild(ghost);
+    sortChildren();
+
+    return ghost;
   }
 
   function createGraveAtPoint(point:Point):Grave {

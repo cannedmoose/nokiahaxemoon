@@ -9,6 +9,7 @@ import openfl.utils.Assets;
 // a time).
 class AudioManager {
   private final ohNo:Sound;
+  private final alert:Sound;
   private final backgroundMusic:Sound;
 
   private var backgroundMusicChannel:SoundChannel;
@@ -18,11 +19,16 @@ class AudioManager {
   public function new() {
     backgroundMusic = Assets.getSound("Assets/k2lu.mp3");
     ohNo = Assets.getSound("Assets/oh_no.mp3");
+    alert = Assets.getSound("Assets/mg_alert.mp3");
     resumeBackgroundMusic();
   }
 
   public function playOhNo() {
     playOneOffSound(ohNo, 1000);
+  }
+
+  public function playAlert() {
+    playOneOffSound(alert, 1000);
   }
 
   private function playOneOffSound(s:Sound, timeMS:Int) {

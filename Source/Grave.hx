@@ -19,6 +19,8 @@ enum GraveState {
 
   FULL;
   // TODO all states.
+
+  DEFILED;
 }
 
 class GraveStateBitmapData {
@@ -67,6 +69,9 @@ class Grave extends Sprite {
     STATE_SPRITES[FULL] = new GraveStateBitmapData(
         bitmapDataFromRect(spriteSheet, new Rectangle(0, 0, TOMBSTONE_WIDTH, TOMBSTONE_HEIGHT)),
         bitmapDataFromRect(spriteSheet, new Rectangle(0, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
+    STATE_SPRITES[DEFILED] = new GraveStateBitmapData(
+        bitmapDataFromRect(spriteSheet, new Rectangle(40, 0, TOMBSTONE_WIDTH, TOMBSTONE_HEIGHT)),
+        bitmapDataFromRect(spriteSheet, new Rectangle(55, 7, GRAVE_WIDTH, GRAVE_HEIGHT)));
   }
 
   private var state:GraveState = GraveState.DIG_1;
@@ -103,6 +108,8 @@ class Grave extends Sprite {
         return holeRect;
       case FULL:
         return localSpaceTombstonePathingCollisionRect();
+      case DEFILED:
+        return localSpaceTombstonePathingCollisionRect().union(holeRect);
     }
   }
 
