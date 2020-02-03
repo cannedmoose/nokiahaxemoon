@@ -105,6 +105,10 @@ class Game extends Sprite {
     dampe.x = 10;
     dampe.y = 10;
 
+    for (pos in [new Point(20, 35), new Point(60, 25), new Point(40, 20)]) {
+      createGraveAtPoint(pos).setState(FULL);
+    }
+
     sortChildren();
   }
 
