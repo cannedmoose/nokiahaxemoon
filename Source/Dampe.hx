@@ -69,12 +69,14 @@ class Dampe extends Sprite {
     return new Rectangle(6, 11, 3, 1);
   }
 
-  public function spook() {
+  public function spook():Bool {
     if (spookedCountdown <= 0) {
       trace("spooky!");
       spookedCountdown = SPOOK_DURATION_FRAMES;
       skipFrame = true;
+      return true;
     }
+    return false;
   }
 
   public function onFrame() {

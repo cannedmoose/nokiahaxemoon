@@ -10,8 +10,6 @@ import openfl.display.DisplayObject;
 import openfl.display.BlendMode;
 import openfl.events.Event;
 import openfl.Lib.getTimer;
-import openfl.media.Sound;
-import openfl.media.SoundTransform;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.utils.Assets;
@@ -25,6 +23,7 @@ class Game extends Sprite {
 
   public static inline var DayFrames = 200;
   var dampe:Dampe;
+  var audioManager:AudioManager;
 
   public function init() {
     this.dampe.init();
@@ -32,6 +31,8 @@ class Game extends Sprite {
 
   public function new(isGameActive:Void->Bool) {
     super();
+
+    audioManager = new AudioManager();
 
     this.graphics.beginFill(BlackColor);
     this.graphics.drawRect(0, 0, Width, Height);
@@ -105,8 +106,6 @@ class Game extends Sprite {
     testGhost.y = 20;
     addChild(testGhost);
 
-    var music:Sound = Assets.getSound("Assets/k2lu.mp3");
-    music.play(0, 9999, new SoundTransform(0.6));
 
     sortChildren();
   }
@@ -121,7 +120,9 @@ class Game extends Sprite {
           var ghostRect = Ghost.localSpaceCollider();
           ghostRect.offset(child.x, child.y);
           if (ghostRect.intersects(dampeMonsterCollisionRect)) {
-            dampe.spook();
+            if (dampe.spook()) {
+              audioManager.playOhNo();
+            }
           }
       }
     }
