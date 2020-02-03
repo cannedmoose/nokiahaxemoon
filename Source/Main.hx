@@ -66,16 +66,23 @@ class Main extends Sprite {
       }
       for (i in 0...numChildren) {
         var child = getChildAt(i);
-        if (Type.getClass(child) == Grave) {
-          var g:Grave = cast(child, Grave);
-          var gRect = g.localSpacePathingCollisionRect();
-          if (gRect != null) {
-            gRect = gRect.clone();
-            gRect.offset(g.x, g.y);
-            if (dampeRect.intersects(gRect)) {
+        switch Type.getClass(child) {
+          case Grave:
+            var g:Grave = cast(child, Grave);
+            var gRect = g.localSpacePathingCollisionRect();
+            if (gRect != null) {
+              gRect = gRect.clone();
+              gRect.offset(g.x, g.y);
+              if (dampeRect.intersects(gRect)) {
+                return false;
+              }
+            }
+          case Church:
+            var rect = Church.localCollider().clone();
+            rect.offset(child.x, child.y);
+            if (dampeRect.intersects(rect)) {
               return false;
             }
-          }
         }
       }
       return true;

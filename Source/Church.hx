@@ -16,5 +16,9 @@ class Church extends Sprite {
     super();
     addChild(new Bitmap(Assets.getBitmapData("Assets/building2.png", false)));
   }
+
+  public static function localCollider(): Rectangle {
+    return new Rectangle(0, 0, WIDTH, HEIGHT);
+  }
 }
 
