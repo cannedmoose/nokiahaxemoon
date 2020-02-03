@@ -15,6 +15,15 @@ import openfl.media.SoundTransform;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.utils.Assets;
+import openfl.events.KeyboardEvent;
+import openfl.ui.Keyboard;
+
+enum State {
+	Title(frame:Int);
+	InGame(frame:Int);
+	DayInfo(frame:Int);
+	Transition(frame:Int, current:State, next:State);
+}
 
 class Main extends Sprite {
 	public static inline var WhiteColor = 0xc7f0d8;
@@ -22,207 +31,88 @@ class Main extends Sprite {
 
 	public static inline var Width = 84;
 	public static inline var Height = 48;
-
 	public static inline var DayFrames = 200;
+
+	public var state:State;
+
+	public var game:Game;
+	public var dayTransition:DayTransition;
+	public var title:Sky;
 
 	public function new() {
 		super();
 
-		Grave.lazyInit();
-    Ghost.initTextures();
-
-    var church = new Church();
-    church.x = 0;
-    church.y = 3;
-    addChild(church);
-
-		// Enable nokie shader to restrict to monochrome.
-		// this.cacheAsBitmap = true;
 		this.shader = new NokiaShader();
-		var dampe:Dampe;
-		dampe = new Dampe(function(point) {
-			trace("digging at", point);
-			var worldPos = new Point(dampe.x + point.x, dampe.y + point.y);
-			var existingGrave = findGraveHoleIntersecting(worldPos);
-			if (existingGrave != null) {
-				switch existingGrave.getState() {
-					case DIG_1:
-						existingGrave.setState(DIG_2);
-					case DIG_2:
-						existingGrave.setState(FRESH);
-					case FRESH:
-					case FULL:
-				}
-			} else {
-				createGraveAtPoint(worldPos);
-			}
-		}, function(p:Point): Bool {
-      var dampeRect = Dampe.getLocalSpaceCollider().clone();
-      dampeRect.offset(p.x, p.y);
-      if (dampeRect.x < 0 || dampeRect.y < 5
-          || (dampeRect.x + dampeRect.width > Width)
-          || (dampeRect.y + dampeRect.height > Height)) {
-        return false;
-      }
-      for (i in 0...numChildren) {
-        var child = getChildAt(i);
-        switch Type.getClass(child) {
-          case Grave:
-            var g:Grave = cast(child, Grave);
-            var gRect = g.localSpacePathingCollisionRect();
-            if (gRect != null) {
-              gRect = gRect.clone();
-              gRect.offset(g.x, g.y);
-              if (dampeRect.intersects(gRect)) {
-                return false;
-              }
-            }
-          case Church:
-            var rect = Church.localCollider().clone();
-            rect.offset(child.x, child.y);
-            if (dampeRect.intersects(rect)) {
-              return false;
-            }
-        }
-      }
-      return true;
-    });
-		addChild(dampe);
-		dampe.init();
-		dampe.x = 10;
-		dampe.y = 10;
+		this.game = new Game();
+		addChild(game);
+		this.game.init();
+		this.dayTransition = new DayTransition(0, 0, 0);
+		addChild(dayTransition);
+		this.title = new Sky();
+		addChild(title);
 
-		var frameCounter = 0;
-		this.graphics.beginFill(WhiteColor);
-		this.graphics.drawRect(0, 0, Width, 2);
-
-    var resolveState = function() {
-      var dampeRect = Dampe.getLocalSpaceCollider();
-      dampeRect.offset(dampe.x, dampe.y);
-      for (i in 0...numChildren) {
-        var child = getChildAt(i);
-        switch Type.getClass(child) {
-          case Ghost:
-            var ghostRect = Ghost.localSpaceCollider();
-            ghostRect.offset(child.x, child.y);
-            if (ghostRect.intersects(dampeRect)) {
-              dampe.spook();
-            }
-        }
-      }
-    };
+		this.state = Title(0);
 
 		var cacheTime = getTimer();
 		this.addEventListener(Event.ENTER_FRAME, function(e) {
 			var currentTime = getTimer();
 			var deltaTime = currentTime - cacheTime;
 			if (deltaTime > 200) {
-				dampe.onFrame();
-        ghostsOnFrame();
-        sortChildren();
-        resolveState();
-				frameCounter += 1;
-				this.graphics.beginFill(BlackColor);
-				this.graphics.drawRect(Width - Width * (frameCounter / DayFrames), 0, Width * (frameCounter / DayFrames), 2);
-				if (frameCounter >= DayFrames) {
-					fillEmptyGraves();
-					this.graphics.beginFill(WhiteColor);
-					this.graphics.drawRect(0, 0, Width, 2);
-					frameCounter = 0;
-				}
+				this.onFrame();
 				cacheTime = currentTime;
 			}
 		});
 
-    var testGhost = new Ghost();
-    testGhost.x = 60;
-    testGhost.y = 20;
-    addChild(testGhost);
-
-		var music:Sound = Assets.getSound("Assets/k2lu.mp3");
-		music.play(0, 9999, new SoundTransform(0.6));
-
-    sortChildren();
+	stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 	}
-
-  function ghostsOnFrame() {
-    for (i in 0...numChildren) {
-			var child = getChildAt(i);
-      switch Type.getClass(child) {
-        case Ghost:
-          cast(child, Ghost).onFrame();
-        default:
-      }
-		}
-  }
-
-  // Painters algo. Graves + Dampe are sorted based on "base y" so dampe is
-  // behind some tombstones and in front of others.
-  // Ghosts are on top of everything.
-  function sortChildren() {
-    final tombstoneRect = Grave.localSpaceTombstoneRect();
-    final dampeRect = Dampe.getLocalSpaceCollider();
-    var getChildZ = function(child:DisplayObject) {
-      switch Type.getClass(child) {
-        case Grave:
-          return child.y + tombstoneRect.y + tombstoneRect.height;
-        case Dampe:
-          return child.y + dampeRect.y + dampeRect.height;
-        case Ghost:
-          return 999;
-        default:
-          return -1;
-      }
-    };
-    var sortFn = function(a:DisplayObject, b:DisplayObject) {
-      final a_z = getChildZ(a);
-      final b_z = getChildZ(b);
-      if (a_z == b_z) return 0;
-      return (a_z > b_z) ? 1 : -1;
-    };
-    var sortArray = new Array<DisplayObject>();
-    for (i in 0...numChildren) {
-      sortArray.push(getChildAt(i));
-    }
-    sortArray.sort(sortFn);
-    for (i in 0...sortArray.length) {
-      setChildIndex(sortArray[i], i);
-    }
-  }
-
-	function createGraveAtPoint(point:Point): Grave {
-		var grave = new Grave();
-		grave.x = point.x;
-		grave.y = point.y;
-    addChild(grave);
-    sortChildren();
-
-    return grave;
-	}
-
-	// Result may be null
-	function findGraveHoleIntersecting(point:Point):Grave {
-		for (i in 0...numChildren) {
-			var child = getChildAt(i);
-			if (Type.getClass(child) == Grave) {
-				var g:Grave = cast(child, Grave);
-				if (g.intersectsHole(point)) {
-					return g;
+  
+  private function onKeyDown(e:KeyboardEvent) {
+		switch (this.state) {
+			case Title(frame):
+				if (e.keyCode == Keyboard.E && frame > 2) {
+					this.game.onBeginDay();
+					this.state = InGame(0);
 				}
+			case DayInfo(frame):
+				if (e.keyCode == Keyboard.E && frame > 2) {
+					this.game.onBeginDay();
+					this.state = InGame(0);
+				}
+			default:
+				return;
 			}
 		}
-		return null;
-	}
 
-	function fillEmptyGraves() {
-		for (i in 0...numChildren) {
-			var child = getChildAt(i);
-			if (Type.getClass(child) == Grave) {
-				var g:Grave = cast(child, Grave);
-				if (g.getState() == FRESH) {
-					g.setState(FULL);
+	public function onFrame() {
+		switch (this.state) {
+			case Title(frame):
+				this.title.onFrame(frame);
+				this.state = Title(frame + 1);
+			case InGame(frame):
+				if (frame > Game.DayFrames) {
+					this.game.onDayEnd();
+					var nGraves = this.game.nGraves();
+					this.dayTransition.update(this.dayTransition.day + 1, nGraves, this.dayTransition.money + nGraves * 10);
+					this.state = DayInfo(0);
+				} else {
+					this.game.onFrame(frame);
+					this.state = InGame(frame + 1);
 				}
-			}
+			case DayInfo(frame):
+				this.dayTransition.onFrame();
+				this.state = DayInfo(frame + 1);
+			case Transition(frame, from, to):
+				this.state = InGame(0);
 		}
+	switch (this.state) {
+		case Title(frame):
+			addChild(this.title);
+		case InGame(frame):
+			addChild(this.game);
+		case DayInfo(frame):
+			addChild(this.dayTransition);
+		case Transition(frame, from, to):
+			addChild(this.game);
 	}
+}
 }
