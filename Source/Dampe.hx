@@ -58,7 +58,11 @@ class Dampe extends Sprite {
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 	}
 
-  public static function getLocalSpaceCollider(): Rectangle {
+  public static function localSpaceMonsterCollider(): Rectangle {
+    return new Rectangle(6, 5, 3, 7);
+  }
+
+  public static function localSpaceMovementCollider(): Rectangle {
     return new Rectangle(6, 11, 3, 1);
   }
 

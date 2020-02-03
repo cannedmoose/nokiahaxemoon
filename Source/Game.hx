@@ -66,7 +66,7 @@ class Game extends Sprite {
 				createGraveAtPoint(worldPos);
 			}
 		}, function(p:Point): Bool {
-      var dampeRect = Dampe.getLocalSpaceCollider().clone();
+      var dampeRect = Dampe.localSpaceMovementCollider().clone();
       dampeRect.offset(p.x, p.y);
       if (dampeRect.x < 0 || dampeRect.y < 5
           || (dampeRect.x + dampeRect.width > Width)
@@ -112,15 +112,15 @@ class Game extends Sprite {
 	}
 
   private function resolveState() {
-    var dampeRect = Dampe.getLocalSpaceCollider();
-    dampeRect.offset(dampe.x, dampe.y);
+    var dampeMonsterCollisionRect = Dampe.localSpaceMonsterCollider();
+    dampeMonsterCollisionRect.offset(dampe.x, dampe.y);
     for (i in 0...numChildren) {
       var child = getChildAt(i);
       switch Type.getClass(child) {
         case Ghost:
           var ghostRect = Ghost.localSpaceCollider();
           ghostRect.offset(child.x, child.y);
-          if (ghostRect.intersects(dampeRect)) {
+          if (ghostRect.intersects(dampeMonsterCollisionRect)) {
             dampe.spook();
           }
       }
@@ -180,7 +180,7 @@ class Game extends Sprite {
 	// Ghosts are on top of everything.
 	function sortChildren() {
 		final tombstoneRect = Grave.localSpaceTombstoneRect();
-		final dampeRect = Dampe.getLocalSpaceCollider();
+		final dampeRect = Dampe.localSpaceMovementCollider();
 		var getChildZ = function(child:DisplayObject) {
 			switch Type.getClass(child) {
 				case Grave:
