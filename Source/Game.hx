@@ -36,8 +36,19 @@ class Game extends Sprite {
 		this.graphics.beginFill(BlackColor);
 		this.graphics.drawRect(0, 0, Width, Height);
 
-		Grave.lazyInit();
-		Ghost.initTextures();
+			Grave.lazyInit();
+    Ghost.initTextures();
+
+    var church = new Church();
+    church.x = 0;
+    church.y = 3;
+    addChild(church);
+
+		// Enable nokia shader to restrict to monochrome.
+		// this.cacheAsBitmap = true;
+		this.shader = new NokiaShader();
+
+		
 		this.dampe = new Dampe(function(point) {
 			trace("digging at", point);
 			var worldPos = new Point(dampe.x + point.x, dampe.y + point.y);
@@ -54,26 +65,37 @@ class Game extends Sprite {
 			} else {
 				createGraveAtPoint(worldPos);
 			}
-		}, function(p:Point):Bool {
-			// TODO movement validation at edge of screen
-			var dampeRect = Dampe.getLocalSpaceCollider().clone();
-			dampeRect.offset(p.x, p.y);
-			for (i in 0...numChildren) {
-				var child = getChildAt(i);
-				if (Type.getClass(child) == Grave) {
-					var g:Grave = cast(child, Grave);
-					var gRect = g.localSpacePathingCollisionRect();
-					if (gRect != null) {
-						gRect = gRect.clone();
-						gRect.offset(g.x, g.y);
-						if (dampeRect.intersects(gRect)) {
-							return false;
-						}
-					}
-				}
-			}
-			return true;
-		});
+		}, function(p:Point): Bool {
+      var dampeRect = Dampe.getLocalSpaceCollider().clone();
+      dampeRect.offset(p.x, p.y);
+      if (dampeRect.x < 0 || dampeRect.y < 5
+          || (dampeRect.x + dampeRect.width > Width)
+          || (dampeRect.y + dampeRect.height > Height)) {
+        return false;
+      }
+      for (i in 0...numChildren) {
+        var child = getChildAt(i);
+        switch Type.getClass(child) {
+          case Grave:
+            var g:Grave = cast(child, Grave);
+            var gRect = g.localSpacePathingCollisionRect();
+            if (gRect != null) {
+              gRect = gRect.clone();
+              gRect.offset(g.x, g.y);
+              if (dampeRect.intersects(gRect)) {
+                return false;
+              }
+            }
+          case Church:
+            var rect = Church.localCollider().clone();
+            rect.offset(child.x, child.y);
+            if (dampeRect.intersects(rect)) {
+              return false;
+            }
+        }
+      }
+      return true;
+    });
 		addChild(dampe);
 		dampe.x = 10;
 		dampe.y = 10;

@@ -51,7 +51,6 @@ class Main extends Sprite {
 		this.title = new Sky();
 		addChild(title);
 
-
 		this.state = Title(0);
 
 		var cacheTime = getTimer();

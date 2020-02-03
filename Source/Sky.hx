@@ -32,6 +32,8 @@ class Sky extends Sprite {
 	public function new() {
     super();
     
+    this.shader = new NokiaShader();
+    
     this.graphics.beginFill(BlackColor);
 		this.graphics.drawRect(0, 0, Width, Height);
 
