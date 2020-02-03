@@ -31,7 +31,7 @@ class NokiaShader extends DisplayObjectShader {
 /**
 	Fragment shader for converting grayscale perlin noise to clouds.
 **/
-class CloudShader extends Shader {
+class CloudShader extends DisplayObjectShader {
 	@:glFragmentSource("
 	#pragma header
 	uniform float cutoff;

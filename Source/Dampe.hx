@@ -19,7 +19,7 @@ import openfl.events.KeyboardEvent;
 // 3 - walking
 // 4:10 - digging
 
-enum State {
+enum DampeState {
 	Standing(frame:Int);
 	Walking(frame:Int);
 	Digging(frame:Int);
@@ -29,7 +29,7 @@ class Dampe extends Sprite {
 	public static inline var Width = 13;
 	public static inline var Height = 12;
 
-	var state:State;
+	var state:DampeState;
 	var spriteSheet:BitmapData;
 	var sprite:Bitmap;
 	var direction:Point;
@@ -51,7 +51,6 @@ class Dampe extends Sprite {
 	}
 
 	public function init() {
-		var cacheTime = getTimer();
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 	}
 
