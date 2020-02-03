@@ -64,7 +64,7 @@ class Game extends Sprite {
           case FULL:
             audioManager.playAlert();
             existingGrave.setState(DEFILED);
-            createGhostAtPoint(existingGrave.x, existingGrave.y);
+            createGhostAtPoint(existingGrave.x, existingGrave.y + 5);
           case DEFILED:
         }
       } else {
@@ -214,11 +214,8 @@ class Game extends Sprite {
   function createGhostAtPoint(x:Float, y:Float):Ghost {
     var collider = Ghost.localSpaceCollider();
     var ghost = new Ghost();
-    // Ok, it doesn't actually spawn at the specified point (uncomment the
-    // collider stuff if you want that). Having it spawn away from the grave
-    // makes it a bit clearer visually.
-    ghost.x = x;// + collider.x - collider.width / 2;
-    ghost.y = y;// + collider.y - collider.height / 2;
+    ghost.x = x + collider.x - collider.width / 2;
+    ghost.y = y + collider.y - collider.height / 2;
     addChild(ghost);
     sortChildren();
 
