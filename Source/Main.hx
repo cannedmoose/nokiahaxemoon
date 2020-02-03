@@ -52,9 +52,13 @@ class Main extends Sprite {
 				createGraveAtPoint(worldPos);
 			}
 		}, function(p:Point): Bool {
-      // TODO movement validation at edge of screen
       var dampeRect = Dampe.getLocalSpaceCollider().clone();
       dampeRect.offset(p.x, p.y);
+      if (dampeRect.x < 0 || dampeRect.y < 5
+          || (dampeRect.x + dampeRect.width > Width)
+          || (dampeRect.y + dampeRect.height > Height)) {
+        return false;
+      }
       for (i in 0...numChildren) {
         var child = getChildAt(i);
         if (Type.getClass(child) == Grave) {
