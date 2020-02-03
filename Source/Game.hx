@@ -189,7 +189,7 @@ class Game extends Sprite {
         case Dampe:
           return child.y + dampeRect.y + dampeRect.height;
         case Ghost:
-          return 999;
+          return 999 + child.y;
         default:
           return -1;
       }
