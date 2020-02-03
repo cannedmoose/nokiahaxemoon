@@ -83,7 +83,7 @@ class Grave extends Sprite {
     return state;
   }
 
-  public static function localSpaceTombstoneRect(): Rectangle {
+  public static function localSpaceTombstonePathingCollisionRect(): Rectangle {
     var tombstoneNonCollidingHeight = 6; // For walking behind tombstone
     return new Rectangle(
         - TOMBSTONE_WIDTH / 2 - 1, - GRAVE_HEIGHT  - TOMBSTONE_HEIGHT / 2 - 1 + tombstoneNonCollidingHeight,
@@ -102,7 +102,7 @@ class Grave extends Sprite {
       case FRESH:
         return holeRect;
       case FULL:
-        return localSpaceTombstoneRect();
+        return localSpaceTombstonePathingCollisionRect();
     }
   }
 

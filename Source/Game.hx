@@ -179,7 +179,7 @@ class Game extends Sprite {
   // behind some tombstones and in front of others.
   // Ghosts are on top of everything.
   function sortChildren() {
-    final tombstoneRect = Grave.localSpaceTombstoneRect();
+    final tombstoneRect = Grave.localSpaceTombstonePathingCollisionRect();
     final dampeRect = Dampe.localSpaceMovementCollider();
     var getChildZ = function(child:DisplayObject) {
       switch Type.getClass(child) {
