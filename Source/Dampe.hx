@@ -28,6 +28,7 @@ enum State {
 class Dampe extends Sprite {
 	public static inline var Width = 13;
 	public static inline var Height = 12;
+  public static final SPOOK_DURATION_FRAMES = 40;
 
 	var state:State;
 	var spriteSheet:BitmapData;
@@ -36,6 +37,9 @@ class Dampe extends Sprite {
 	var flip = false;
 	var digCallback:Point->Void;
   var movementValidationCallback:Point->Bool;
+
+  var spookedCountdown = 0;
+  var skipFrame = false;
 
 	public function new(digCallback:Point->Void, movementValidationCallback:Point->Bool) {
 		super();
@@ -59,7 +63,30 @@ class Dampe extends Sprite {
     return new Rectangle(6, 11, 3, 1);
   }
 
+  public function spook() {
+    if (spookedCountdown <= 0) {
+      trace("spooky!");
+      spookedCountdown = SPOOK_DURATION_FRAMES;
+      skipFrame = true;
+    }
+  }
+
 	public function onFrame() {
+    if (spookedCountdown > 0) {
+      spookedCountdown--;
+    }
+    if (spookedCountdown > 0) {
+      trace(spookedCountdown);
+      this.sprite.alpha = skipFrame ? 0 : 1;
+
+      skipFrame = !skipFrame;
+      if (!skipFrame) {
+        return;
+      }
+    } else {
+      this.sprite.alpha = 1;
+    }
+
 		switch (this.state) {
 			case Standing(frame):
 				this.state = Standing((frame + 1) % 4);

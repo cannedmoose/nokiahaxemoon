@@ -96,6 +96,22 @@ class Main extends Sprite {
 		this.graphics.beginFill(WhiteColor);
 		this.graphics.drawRect(0, 0, Width, 2);
 
+    var resolveState = function() {
+      var dampeRect = Dampe.getLocalSpaceCollider();
+      dampeRect.offset(dampe.x, dampe.y);
+      for (i in 0...numChildren) {
+        var child = getChildAt(i);
+        switch Type.getClass(child) {
+          case Ghost:
+            var ghostRect = Ghost.localSpaceCollider();
+            ghostRect.offset(child.x, child.y);
+            if (ghostRect.intersects(dampeRect)) {
+              dampe.spook();
+            }
+        }
+      }
+    };
+
 		var cacheTime = getTimer();
 		this.addEventListener(Event.ENTER_FRAME, function(e) {
 			var currentTime = getTimer();
@@ -104,6 +120,7 @@ class Main extends Sprite {
 				dampe.onFrame();
         ghostsOnFrame();
         sortChildren();
+        resolveState();
 				frameCounter += 1;
 				this.graphics.beginFill(BlackColor);
 				this.graphics.drawRect(Width - Width * (frameCounter / DayFrames), 0, Width * (frameCounter / DayFrames), 2);

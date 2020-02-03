@@ -19,6 +19,10 @@ class Ghost extends Sprite {
   private var frameCounter = 0;
   private var flipHorz = false;
 
+  public static function localSpaceCollider(): Rectangle {
+    return new Rectangle(0, 0, WIDTH + 1, HEIGHT + 1);
+  }
+
   public static function initTextures() {
     if (TEXTURE_1 != null) {
       return;
