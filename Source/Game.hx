@@ -49,7 +49,6 @@ class Game extends Sprite {
     // this.cacheAsBitmap = true;
     this.shader = new NokiaShader();
 
-    
     this.dampe = new Dampe(function(point) {
       trace("digging at", point);
       var worldPos = new Point(dampe.x + point.x, dampe.y + point.y);
@@ -61,10 +60,8 @@ class Game extends Sprite {
           case DIG_2:
             existingGrave.setState(FRESH);
           case FRESH:
-          case FULL:
-            audioManager.playAlert();
+          case FULL | FULL_STEPPED_ON_1 | FULL_STEPPED_ON_2 | FULL_STEPPED_ON_3:
             existingGrave.setState(DEFILED);
-            createGhostAtPoint(existingGrave.x, existingGrave.y + 5);
           case DEFILED:
         }
       } else {
@@ -115,6 +112,8 @@ class Game extends Sprite {
   private function resolveState() {
     var dampeMonsterCollisionRect = Dampe.localSpaceMonsterCollider();
     dampeMonsterCollisionRect.offset(dampe.x, dampe.y);
+    var dampeMovementCollisionRect = Dampe.localSpaceMovementCollider();
+    dampeMovementCollisionRect.offset(dampe.x, dampe.y);
     for (i in 0...numChildren) {
       var child = getChildAt(i);
       switch Type.getClass(child) {
@@ -126,6 +125,11 @@ class Game extends Sprite {
               audioManager.playOhNo();
             }
           }
+        case Grave:
+          var grave = cast(child, Grave);
+          var graveHoleRect = Grave.localSpaceGraveHoleRect();
+          graveHoleRect.offset(grave.x, grave.y);
+          grave.setGraveCurrentlyBeingStoodOn(dampeMovementCollisionRect.intersects(graveHoleRect));
       }
     }
 
@@ -226,8 +230,13 @@ class Game extends Sprite {
     return ghost;
   }
 
+  function graveDefilementListener(g:Grave) {
+    audioManager.playAlert();
+    createGhostAtPoint(g.x, g.y + 5);
+  }
+
   function createGraveAtPoint(point:Point):Grave {
-    var grave = new Grave();
+    var grave = new Grave(graveDefilementListener);
     grave.x = point.x;
     grave.y = point.y;
     addChild(grave);
