@@ -75,7 +75,6 @@ class Dampe extends Sprite {
       spookedCountdown--;
     }
     if (spookedCountdown > 0) {
-      trace(spookedCountdown);
       this.sprite.alpha = skipFrame ? 0 : 1;
 
       skipFrame = !skipFrame;
