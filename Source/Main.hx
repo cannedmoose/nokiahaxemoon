@@ -31,6 +31,11 @@ class Main extends Sprite {
 		Grave.lazyInit();
     Ghost.initTextures();
 
+    var church = new Church();
+    church.x = 0;
+    church.y = 3;
+    addChild(church);
+
 		// Enable nokie shader to restrict to monochrome.
 		// this.cacheAsBitmap = true;
 		this.shader = new NokiaShader();
