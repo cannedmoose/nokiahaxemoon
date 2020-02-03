@@ -37,11 +37,13 @@ class Dampe extends Sprite {
 	var flip = false;
 	var digCallback:Point->Void;
   var movementValidationCallback:Point->Bool;
+  var isGameActive:Void->Bool;
 
   var spookedCountdown = 0;
   var skipFrame = false;
 
-	public function new(digCallback:Point->Void, movementValidationCallback:Point->Bool) {
+	public function new(digCallback:Point->Void, movementValidationCallback:Point->Bool,
+        isGameActive:Void->Bool) {
 		super();
 
 		this.state = Standing(0);
@@ -50,6 +52,7 @@ class Dampe extends Sprite {
 		this.direction = new Point(0, 0);
 		this.digCallback = digCallback;
     this.movementValidationCallback = movementValidationCallback;
+    this.isGameActive = isGameActive;
 		addChild(this.sprite);
 		this.updateSprite();
 	}
@@ -125,6 +128,9 @@ class Dampe extends Sprite {
 	}
 
 	private function onKeyDown(e:KeyboardEvent) {
+    if (!isGameActive()) {
+      return;
+    }
 		switch (this.state) {
 			case Standing(frame):
 				if (e.keyCode == Keyboard.W) {

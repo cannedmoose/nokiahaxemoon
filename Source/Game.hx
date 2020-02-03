@@ -30,7 +30,7 @@ class Game extends Sprite {
 		this.dampe.init();
 	};
 
-	public function new() {
+	public function new(isGameActive:Void->Bool) {
 		super();
 
 		this.graphics.beginFill(BlackColor);
@@ -95,7 +95,7 @@ class Game extends Sprite {
         }
       }
       return true;
-    });
+    }, isGameActive);
 		addChild(dampe);
 		dampe.x = 10;
 		dampe.y = 10;

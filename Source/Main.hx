@@ -43,7 +43,14 @@ class Main extends Sprite {
 		super();
 
 		this.shader = new NokiaShader();
-		this.game = new Game();
+		this.game = new Game(function() {
+      switch this.state {
+        case InGame(frame):
+          return true;
+        default:
+          return false;
+      }
+    });
 		addChild(game);
 		this.game.init();
 		this.dayTransition = new DayTransition(0, 0, 0);
