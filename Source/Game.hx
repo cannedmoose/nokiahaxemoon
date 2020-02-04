@@ -93,7 +93,10 @@ class Game extends Sprite {
             existingGrave.setState(HOLE);
           case HOLE:
           case SPAWN_PROGRESS_1 | SPAWN_PROGRESS_2:
-            // TODO damage "owning" tombstone
+            var t = getGraveLinkedTombstone(existingGrave);
+            if (t != null) {
+              t.onDamage();
+            }
         }
       } else {
         if (getObjectAtCell(digCell) == null) {
@@ -211,7 +214,7 @@ class Game extends Sprite {
               if (graveRect.intersects(dampeMovementCollisionRect)) {
                 var t = getGraveLinkedTombstone(grave);
                 if (t != null) {
-                  t.onGraveTrample();
+                  t.onDamage();
                 }
               }
             case DIG_1 | DIG_2 | HOLE:
@@ -289,6 +292,8 @@ class Game extends Sprite {
     this.statusBar.tombStones = 3;
     this.dampe.x = 0;
     this.dampe.y = 14;
+    this.dampe.unSpook();
+    this.dampe.resetState();
   }
 
   public function onDayEnd(): Int {

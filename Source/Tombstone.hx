@@ -48,7 +48,7 @@ class Tombstone extends Sprite {
     updateRenderSprite();
   }
 
-  public function onGraveTrample() {
+  public function onDamage() {
     switch state {
       case NORMAL:
         setState(DAMAGED);

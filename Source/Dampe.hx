@@ -51,7 +51,8 @@ class Dampe extends Sprite {
       movementValidationCallback:Point->Bool, isGameActive:Void->Bool) {
     super();
 
-    this.state = Standing(0);
+    this.resetState();
+
     this.spriteSheet = Assets.getBitmapData("Assets/dampe_alt.png");
     this.sprite = new Bitmap(new BitmapData(Width, Height, true, 0xFFFFFFFF));
     this.direction = new Point(0, 0);
@@ -94,6 +95,15 @@ class Dampe extends Sprite {
       return true;
     }
     return false;
+  }
+
+  public function unSpook() {
+    skipFrame = false;
+    spookedCountdown = 0;
+  }
+
+  public function resetState() {
+    this.state = Standing(0);
   }
 
   public function onFrame() {
