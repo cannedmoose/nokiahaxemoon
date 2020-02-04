@@ -23,5 +23,7 @@
 	<assets path="Assets/numbers.png" />
 	<assets path="Assets/transition.png" />
 	<assets path="Assets/building2.png" />
+	<assets path="Assets/title.png" />
+	<assets path="Assets/press_e.png" />
 	
 </project>
