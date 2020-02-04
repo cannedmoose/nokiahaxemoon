@@ -68,35 +68,7 @@ class Game extends Sprite {
         createGraveAtPoint(worldPos);
       }
     }, function(p:Point): Bool {
-      var dampeRect = Dampe.localSpaceMovementCollider().clone();
-      dampeRect.offset(p.x, p.y);
-      if (dampeRect.x < 0 || dampeRect.y < 5
-          || (dampeRect.x + dampeRect.width > Width)
-          || (dampeRect.y + dampeRect.height > Height)) {
-        return false;
-      }
-      for (i in 0...numChildren) {
-        var child = getChildAt(i);
-        switch Type.getClass(child) {
-          case Grave:
-            var g:Grave = cast(child, Grave);
-            var gRect = g.localSpacePathingCollisionRect();
-            if (gRect != null) {
-              gRect = gRect.clone();
-              gRect.offset(g.x, g.y);
-              if (dampeRect.intersects(gRect)) {
-                return false;
-              }
-            }
-          case Church:
-            var rect = Church.localCollider().clone();
-            rect.offset(child.x, child.y);
-            if (dampeRect.intersects(rect)) {
-              return false;
-            }
-        }
-      }
-      return true;
+      return isValidDampePosition(p.x, p.y);
     }, isGameActive);
     addChild(dampe);
     dampe.x = 10;
@@ -107,6 +79,38 @@ class Game extends Sprite {
     }
 
     sortChildren();
+  }
+
+  private function isValidDampePosition(x:Float, y:Float) {
+    var dampeRect = Dampe.localSpaceMovementCollider().clone();
+    dampeRect.offset(x, y);
+    if (dampeRect.x < 0 || dampeRect.y < 5
+        || (dampeRect.x + dampeRect.width > Width)
+        || (dampeRect.y + dampeRect.height > Height)) {
+      return false;
+    }
+    for (i in 0...numChildren) {
+      var child = getChildAt(i);
+      switch Type.getClass(child) {
+        case Grave:
+          var g:Grave = cast(child, Grave);
+          var gRect = g.localSpacePathingCollisionRect();
+          if (gRect != null) {
+            gRect = gRect.clone();
+            gRect.offset(g.x, g.y);
+            if (dampeRect.intersects(gRect)) {
+              return false;
+            }
+          }
+        case Church:
+          var rect = Church.localCollider().clone();
+          rect.offset(child.x, child.y);
+          if (dampeRect.intersects(rect)) {
+            return false;
+          }
+      }
+    }
+    return true;
   }
 
   private function resolveState() {
@@ -133,7 +137,31 @@ class Game extends Sprite {
       }
     }
 
-    // TODO if Dampe is stuck, un-stuck him
+    // If Dampe is stuck, un-stuck him
+    if (!isValidDampePosition(dampe.x, dampe.y)) {
+      for (dist in 1...20) {
+        var resolved = false;
+        for (x_dir in [-1, 0, 1]) {
+          for (y_dir in [-1, 0, 1]) {
+            final dx = x_dir * dist;
+            final dy = y_dir * dist;
+            if (isValidDampePosition(dampe.x + dx, dampe.y + dy)) {
+              trace("un-stuck dampe");
+              dampe.x += dx;
+              dampe.y += dy;
+              resolved = true;
+              break;
+            }
+          }
+          if (resolved) {
+            break;
+          }
+        }
+        if (resolved) {
+          break;
+        }
+      }
+    }
   };
 
   public function onFrame(frame:Int) {
@@ -149,6 +177,7 @@ class Game extends Sprite {
 
   public function onBeginDay() {
     fillEmptyGraves();
+    resolveState();
     
     // Reset timer area
     this.graphics.beginFill(WhiteColor);
