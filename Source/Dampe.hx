@@ -140,7 +140,7 @@ class Dampe extends Sprite {
           this.state = Digging((frame + 1) % 7);
         }
       case Placing(frame):
-        var actionPoint = flip ? new Point(14, 11) : new Point(2, 11);
+        var actionPoint = flip ? new Point(14, 10) : new Point(2, 10);
         if (frame == 0) {
           trace(this.placeGraveValidationCallback(actionPoint));
           if (!this.placeGraveValidationCallback(actionPoint)) {

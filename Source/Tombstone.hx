@@ -14,7 +14,7 @@ enum TombstoneState {
   SANCTIFIED;
 }
 
-// Position == bottom left
+// Position == top left of "normal size"
 class Tombstone extends Sprite {
   private static final TOMBSTONE_HEIGHT = 7;
   private static final TOMBSTONE_WIDTH = 7;
@@ -56,7 +56,7 @@ class Tombstone extends Sprite {
     var tombstoneCollidingHeight = 1; // For walking behind tombstone
     // NOTE: always return new instance
     return new Rectangle(
-        0, -tombstoneCollidingHeight,
+        0, TOMBSTONE_HEIGHT - tombstoneCollidingHeight,
         TOMBSTONE_WIDTH + 1, tombstoneCollidingHeight + 1);
   }
 
@@ -73,7 +73,7 @@ class Tombstone extends Sprite {
     removeChildren();
     var g = new Bitmap(STATE_SPRITES[this.state]);
     g.x = 0;
-    g.y = this.state == SANCTIFIED ? (-SANCTIFIED_HEIGHT) : (-TOMBSTONE_HEIGHT);
+    g.y = this.state == SANCTIFIED ? (TOMBSTONE_HEIGHT-SANCTIFIED_HEIGHT) : 0;
     addChild(g);
   }
 }

@@ -57,7 +57,8 @@ class Game extends Sprite {
     // Returns null if offscreen
     var getDampeActionCell = function(intendedPos:Point):Cell {
       var cell = cellHelper.getClosestCell(dampe.x + intendedPos.x, dampe.y + intendedPos.y);
-      var dampeRect = dampe.parentSpaceMovementCollider();
+      var dampeRect = dampe.parentSpaceMovementCollider().clone();
+      dampeRect.inflate(0, 30);
       {
         var potentialGraveRect = Grave.localSpaceGraveHoleRect();
         var p = cellHelper.getCellCenter(cell);
@@ -98,17 +99,39 @@ class Game extends Sprite {
         createGraveAtPoint(worldPos);
       }
     }, function(p:Point):Bool {
-      return (this.statusBar.tombStones > 0);
+      if (this.statusBar.tombStones <= 0) {
+        return false;
+      }
+      var cell = getDampeActionCell(p);
+      if (cell == null) {
+        return false;
+      }
+      var existingChild = getChildAtCell(cell);
+      if (existingChild == null) {
+        return true;
+      }
+      switch Type.getClass(existingChild) {
+        case Tombstone | Church:
+          return false;
+        case Grave:
+          final g = cast(existingChild, Grave);
+          return g.getState() == DIG_1;
+      }
+      return true;
     }, function(p:Point):Void {
       trace("Placing at ", p);
       var cell = getDampeActionCell(p);
       if (cell == null) {
         return;
       }
+      var existingChild = getChildAtCell(cell);
+      if (existingChild != null) {
+        removeChild(existingChild);
+      }
       var cellOrigin = cellHelper.getCellTopLeft(cell);
       var t = new Tombstone();
       t.x = cellOrigin.x;
-      t.y = cellOrigin.y + CellHelper.CELL_HEIGHT;
+      t.y = cellOrigin.y;
       addChild(t);
       this.statusBar.tombStones -= 1;
     }, function(p:Point):Bool {
@@ -215,6 +238,16 @@ class Game extends Sprite {
     sortChildren();
     resolveState();
     this.statusBar.onFrame(1 - (frame / DayFrames));
+  }
+
+  private function getChildAtCell(cell:Cell): DisplayObject {
+    for (i in 0...numChildren) {
+      var child = getChildAt(i);
+      if (cellHelper.getClosestCell(child.x, child.y).isSameAs(cell)) {
+        return child;
+      }
+    }
+    return null;
   }
 
   public function onBeginDay() {
