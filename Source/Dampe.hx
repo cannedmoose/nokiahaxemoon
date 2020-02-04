@@ -68,6 +68,10 @@ class Dampe extends Sprite {
     this.updateSprite();
   }
 
+  public function isFacingRight(): Bool {
+    return flip;
+  }
+
   public function init() {
     stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
   }
@@ -78,6 +82,12 @@ class Dampe extends Sprite {
 
   public static function localSpaceMovementCollider(): Rectangle {
     return new Rectangle(6, 11, 3, 1);
+  }
+
+  public function parentSpaceMovementCollider(): Rectangle {
+    var rect = localSpaceMovementCollider();
+    rect.offset(this.x, this.y);
+    return rect;
   }
 
   public function spook():Bool {

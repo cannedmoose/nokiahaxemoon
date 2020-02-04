@@ -1,6 +1,7 @@
 package;
 
 import openfl.geom.Point;
+import openfl.geom.Rectangle;
 
 class Cell {
   public var row:Int;
@@ -32,6 +33,18 @@ class CellHelper {
     );
   }
 
+  public function getCellCollisionRect(cell:Cell): Rectangle {
+    return new Rectangle(
+        cell.col * CELL_WIDTH,
+        cell.row * CELL_HEIGHT + TOP_BORDER,
+        CELL_WIDTH + 1,
+        CELL_HEIGHT + 1);
+  }
+
+  public function getMaxCellCol(): Int {
+    return Math.round(pixelWidth / CELL_WIDTH);
+  }
+
   public function getClosestCell(x:Float, y:Float): Cell {
     return new Cell(getRow(y), getCol(x));
   }
@@ -51,7 +64,7 @@ class CellHelper {
     return clamp(
         Math.floor(x / CELL_WIDTH),
         0,
-        Math.round(pixelWidth / CELL_WIDTH));
+        getMaxCellCol());
   }
 
   private static function clamp(v:Int, low:Int, high:Int): Int {

@@ -54,8 +54,16 @@ class Game extends Sprite {
 
     this.dampe = new Dampe(function(point) {
       trace("digging at", point);
-      // TODO don't allow digging on top of yourself
-      var worldPos = cellHelper.getCellCenter(cellHelper.getClosestCell(dampe.x + point.x, dampe.y + point.y));
+      var digCell = cellHelper.getClosestCell(dampe.x + point.x, dampe.y + point.y);
+      var dampeRect = dampe.parentSpaceMovementCollider();
+      if (cellHelper.getCellCollisionRect(digCell).intersects(dampeRect)) {
+        digCell.col += (dampe.isFacingRight() ? 1 : -1);
+        if (digCell.col < 0 || digCell.col > cellHelper.getMaxCellCol()) {
+          trace("Attempted to dig offscreen");
+          return;
+        }
+      }
+      var worldPos = cellHelper.getCellCenter(digCell);
       var existingGrave = findGraveHoleIntersecting(worldPos);
       if (existingGrave != null) {
         switch existingGrave.getState() {
