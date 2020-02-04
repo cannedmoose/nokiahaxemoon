@@ -292,7 +292,7 @@ class Game extends Sprite {
   }
 
   public function onDayEnd(): Int {
-    return fillEmptyGraves();
+    return progressGraves();
   }
 
   function ghostsOnFrame() {
@@ -381,18 +381,34 @@ class Game extends Sprite {
     return null;
   }
 
-  function fillEmptyGraves(): Int {
+  // Returns number of newly "SANCTIFIED" graves.
+  function progressGraves(): Int {
     var count = 0;
+    var gravesToRemove:Array<Grave> = [];
     for (i in 0...numChildren) {
       var child = getChildAt(i);
       if (Type.getClass(child) == Grave) {
         var g:Grave = cast(child, Grave);
         var t = getGraveLinkedTombstone(g);
-        if (g.getState() == HOLE && t != null && t.getState() == NORMAL) {
-          count++;
-          g.setState(SPAWN_PROGRESS_1);
+        if (t != null && t.getState() == NORMAL) {
+          switch g.getState() {
+            case HOLE:
+              g.setState(SPAWN_PROGRESS_1);
+            case SPAWN_PROGRESS_1:
+              g.setState(SPAWN_PROGRESS_2);
+            case SPAWN_PROGRESS_2:
+              t.setState(SANCTIFIED);
+              gravesToRemove.push(g);
+              createGhostAtPoint(g.x, g.y);
+              count++;
+            case DIG_1|DIG_2:
+              // nothing
+          }
         }
       }
+    }
+    for (g in gravesToRemove) {
+      removeChild(g);
     }
     return count;
   }
