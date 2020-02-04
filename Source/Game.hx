@@ -124,10 +124,14 @@ class Game extends Sprite {
       if (cell == null) {
         return;
       }
+      var existingChild = getChildAtCell(cell);
+      if (existingChild != null) {
+        removeChild(existingChild);
+      }
       var cellOrigin = cellHelper.getCellTopLeft(cell);
       var t = new Tombstone();
       t.x = cellOrigin.x;
-      t.y = cellOrigin.y + CellHelper.CELL_HEIGHT;
+      t.y = cellOrigin.y;
       addChild(t);
       this.statusBar.tombStones -= 1;
     }, function(p:Point):Bool {
