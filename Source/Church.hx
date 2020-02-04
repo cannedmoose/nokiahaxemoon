@@ -8,17 +8,15 @@ import openfl.geom.Rectangle;
 import openfl.geom.Point;
 
 class Church extends Sprite {
-  private static final WIDTH = 11;
-  private static final HEIGHT = 12;
-
+  private static final WIDTH = 14;
+  private static final HEIGHT = 14;
 
   public function new() {
     super();
     addChild(new Bitmap(Assets.getBitmapData("Assets/building2.png", false)));
   }
 
-  public static function localCollider(): Rectangle {
+  public static function localCollider():Rectangle {
     return new Rectangle(0, 0, WIDTH, HEIGHT);
   }
 }
-
