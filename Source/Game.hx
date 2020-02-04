@@ -18,8 +18,9 @@ class Game extends Sprite {
 	public static inline var WhiteColor = 0xc7f0d8;
 	public static inline var BlackColor = 0x43523d;
 
-	public static inline var Width = 84;
-	public static inline var Height = 48;
+  public static inline var Width = 84;
+  public static inline var Height = 48;
+  private static final cellHelper = new CellHelper(Width, Height);
 
 	public static inline var DayFrames = 200;
 
@@ -47,13 +48,14 @@ class Game extends Sprite {
 		church.y = 3;
 		addChild(church);
 
-		// Enable nokia shader to restrict to monochrome.
-		// this.cacheAsBitmap = true;
-		this.shader = new NokiaShader();
+    // Enable nokia shader to restrict to monochrome.
+    // this.cacheAsBitmap = true;
+    this.shader = new NokiaShader();
 
 		this.dampe = new Dampe(function(point) {
 			trace("digging at", point);
-			var worldPos = new Point(dampe.x + point.x, dampe.y + point.y);
+      // TODO don't allow digging on top of yourself
+      var worldPos = cellHelper.getCellCenter(cellHelper.getClosestCell(dampe.x + point.x, dampe.y + point.y));
 			var existingGrave = findGraveHoleIntersecting(worldPos);
 			if (existingGrave != null) {
 				switch existingGrave.getState() {
