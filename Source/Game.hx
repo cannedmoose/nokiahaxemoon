@@ -387,7 +387,8 @@ class Game extends Sprite {
       var child = getChildAt(i);
       if (Type.getClass(child) == Grave) {
         var g:Grave = cast(child, Grave);
-        if (g.getState() == HOLE && getGraveLinkedTombstone(g) != null) {
+        var t = getGraveLinkedTombstone(g);
+        if (g.getState() == HOLE && t != null && t.getState() == NORMAL) {
           count++;
           g.setState(SPAWN_PROGRESS_1);
         }
