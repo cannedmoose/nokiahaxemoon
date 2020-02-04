@@ -151,9 +151,9 @@ class Dampe extends Sprite {
           } else {
             this.state = Placing(1);
           }
-        } if (frame == 2) {
+        } else if (frame == 2) {
           this.placeGraveCallback(actionPoint);
-        } if (frame == 3) {
+        } else if (frame == 3) {
           this.state = Standing(0);
         } else {
           this.state = Placing((frame + 1) % 4);

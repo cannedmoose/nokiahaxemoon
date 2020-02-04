@@ -95,6 +95,21 @@ class Game extends Sprite {
         createGraveAtPoint(worldPos);
       }
     }, function(p:Point):Bool {
+      var cell = getDampeActionCell(p);
+      if (cell == null) {
+        return false;
+      }
+      var existingChild = getChildAtCell(cell);
+      if (existingChild == null) {
+        return true;
+      }
+      switch Type.getClass(existingChild) {
+        case Tombstone | Church:
+          return false;
+        case Grave:
+          final g = cast(existingChild, Grave);
+          return g.getState() == DIG_1;
+      }
       return true;
     }, function(p:Point):Void {
       trace("Placing at ", p);
@@ -214,6 +229,16 @@ class Game extends Sprite {
     ghostsOnFrame();
     sortChildren();
     resolveState();
+  }
+
+  private function getChildAtCell(cell:Cell): DisplayObject {
+    for (i in 0...numChildren) {
+      var child = getChildAt(i);
+      if (cellHelper.getClosestCell(child.x, child.y).isSameAs(cell)) {
+        return child;
+      }
+    }
+    return null;
   }
 
   public function onBeginDay() {

@@ -11,6 +11,10 @@ class Cell {
     this.row = row;
     this.col = col;
   }
+
+  public function isSameAs(other:Cell): Bool {
+    return this.row == other.row && this.col == other.col;
+  }
 }
 
 class CellHelper {
