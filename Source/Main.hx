@@ -1,6 +1,7 @@
 package;
 
 import Shaders.NokiaShader;
+import Transition.Transition;
 import openfl.display.CapsStyle;
 import openfl.display.Graphics;
 import openfl.display.Sprite;
@@ -28,9 +29,13 @@ enum State {
 class Main extends Sprite {
   public var state:State;
 
+  public static inline var WhiteColor = 0xc7f0d8;
+  public static inline var BlackColor = 0x43523d;
+
   public var game:Game;
   public var dayTransition:DayTransition;
   public var title:Sky;
+  public var transition:Transition;
 
   public function new() {
     super();
@@ -48,6 +53,8 @@ class Main extends Sprite {
     this.game.init();
     this.dayTransition = new DayTransition(0, 0, 0);
     addChild(dayTransition);
+    this.transition = new Transition(0x43523d);
+    addChild(transition);
     this.title = new Sky();
     addChild(title);
 
@@ -63,25 +70,27 @@ class Main extends Sprite {
       }
     });
 
-  stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+    stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
   }
-  
+
   private function onKeyDown(e:KeyboardEvent) {
     switch (this.state) {
       case Title(frame):
         if (e.keyCode == Keyboard.E && frame > 2) {
           this.game.onBeginDay();
-          this.state = InGame(0);
+          this.transition.color = BlackColor;
+          this.state = Transition(0, Title(frame), InGame(0));
         }
       case DayInfo(frame):
         if (e.keyCode == Keyboard.E && frame > 2) {
           this.game.onBeginDay();
-          this.state = InGame(0);
+          this.transition.color = BlackColor;
+          this.state = Transition(0, DayInfo(frame), InGame(0));
         }
       default:
         return;
-      }
     }
+  }
 
   public function onFrame() {
     switch (this.state) {
@@ -92,7 +101,8 @@ class Main extends Sprite {
         if (frame > Game.DayFrames) {
           var nGraves = this.game.onDayEnd();
           this.dayTransition.update(this.dayTransition.day + 1, nGraves, this.dayTransition.money + nGraves * 10);
-          this.state = DayInfo(0);
+          this.transition.color = WhiteColor;
+          this.state = Transition(0, InGame(0), DayInfo(0));
         } else {
           this.game.onFrame(frame);
           this.state = InGame(frame + 1);
@@ -101,17 +111,45 @@ class Main extends Sprite {
         this.dayTransition.onFrame();
         this.state = DayInfo(frame + 1);
       case Transition(frame, from, to):
-        this.state = InGame(0);
+        this.transition.onFrame(frame);
+        if (frame > 8) {
+          this.state = to;
+        } else {
+          this.state = Transition(frame + 1, from, to);
+        }
     }
-  switch (this.state) {
-    case Title(frame):
-      addChild(this.title);
-    case InGame(frame):
-      addChild(this.game);
-    case DayInfo(frame):
-      addChild(this.dayTransition);
-    case Transition(frame, from, to):
-      addChild(this.game);
+    switch (this.state) {
+      case Title(frame):
+        addChild(this.title);
+      case InGame(frame):
+        addChild(this.game);
+      case DayInfo(frame):
+        addChild(this.dayTransition);
+      case Transition(frame, from, to):
+        if (frame <= 5) {
+          switch (from) {
+            case Title(frame):
+              addChild(this.title);
+            case InGame(frame):
+              addChild(this.game);
+            case DayInfo(frame):
+              addChild(this.dayTransition);
+            default:
+              addChild(this.game);
+          }
+        } else {
+          switch (to) {
+            case Title(frame):
+              addChild(this.title);
+            case InGame(frame):
+              addChild(this.game);
+            case DayInfo(frame):
+              addChild(this.dayTransition);
+            default:
+              addChild(this.game);
+          }
+        }
+        addChild(this.transition);
+    }
   }
-}
 }
