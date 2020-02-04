@@ -37,7 +37,8 @@ class Game extends Sprite {
     this.graphics.beginFill(BlackColor);
     this.graphics.drawRect(0, 0, Width, Height);
 
-      Grave.lazyInit();
+    Grave.lazyInit();
+    Tombstone.lazyInit();
     Ghost.initTextures();
 
     var church = new Church();
@@ -58,11 +59,10 @@ class Game extends Sprite {
           case DIG_1:
             existingGrave.setState(DIG_2);
           case DIG_2:
-            existingGrave.setState(FRESH);
-          case FRESH:
-          case FULL | FULL_STEPPED_ON_1 | FULL_STEPPED_ON_2 | FULL_STEPPED_ON_3:
-            existingGrave.setState(DEFILED);
-          case DEFILED:
+            existingGrave.setState(HOLE);
+          case HOLE:
+          case SPAWN_PROGRESS_1 | SPAWN_PROGRESS_2:
+            // TODO damage "owning" tombstone
         }
       } else {
         createGraveAtPoint(worldPos);
@@ -73,10 +73,6 @@ class Game extends Sprite {
     addChild(dampe);
     dampe.x = 10;
     dampe.y = 10;
-
-    for (pos in [new Point(20, 35), new Point(60, 25), new Point(40, 20)]) {
-      createGraveAtPoint(pos).setState(FULL);
-    }
 
     sortChildren();
   }
@@ -101,6 +97,12 @@ class Game extends Sprite {
             if (dampeRect.intersects(gRect)) {
               return false;
             }
+          }
+        case Tombstone:
+          var tRect = Tombstone.localSpacePathingCollider();
+          tRect.offset(child.x, child.y);
+          if (dampeRect.intersects(tRect)) {
+            return false;
           }
         case Church:
           var rect = Church.localCollider().clone();
@@ -131,9 +133,7 @@ class Game extends Sprite {
           }
         case Grave:
           var grave = cast(child, Grave);
-          var graveHoleRect = Grave.localSpaceGraveHoleRect();
-          graveHoleRect.offset(grave.x, grave.y);
-          grave.setGraveCurrentlyBeingStoodOn(dampeMovementCollisionRect.intersects(graveHoleRect));
+          // TODO change linked tombstone to damaged
       }
     }
 
@@ -187,6 +187,7 @@ class Game extends Sprite {
   public function onDayEnd() {
   }
 
+  // TODO account for "valid-ness"/linked tombstone
   public function nGraves(): Int {
     var n = 0;
     for (i in 0...numChildren) {
@@ -194,7 +195,7 @@ class Game extends Sprite {
       if (Type.getClass(child) == Grave) {
         var g:Grave = cast(child, Grave);
         trace(g.getState());
-        if (g.getState() == FRESH) {
+        if (g.getState() == HOLE) {
           n = n + 1;
         }
       }
@@ -213,15 +214,17 @@ class Game extends Sprite {
     }
   }
 
-  // Painters algo. Graves + Dampe are sorted based on "base y" so dampe is
+  // Painters algo. Tombstones + Dampe are sorted based on "base y" so dampe is
   // behind some tombstones and in front of others.
   // Ghosts are on top of everything.
   function sortChildren() {
-    final tombstoneRect = Grave.localSpaceTombstonePathingCollisionRect();
+    final tombstoneRect = Tombstone.localSpacePathingCollider();
     final dampeRect = Dampe.localSpaceMovementCollider();
     var getChildZ = function(child:DisplayObject) {
       switch Type.getClass(child) {
         case Grave:
+          return 0.0;
+        case Tombstone:
           return child.y + tombstoneRect.y + tombstoneRect.height;
         case Dampe:
           return child.y + dampeRect.y + dampeRect.height;
@@ -259,13 +262,8 @@ class Game extends Sprite {
     return ghost;
   }
 
-  function graveDefilementListener(g:Grave) {
-    audioManager.playAlert();
-    createGhostAtPoint(g.x, g.y + 5);
-  }
-
   function createGraveAtPoint(point:Point):Grave {
-    var grave = new Grave(graveDefilementListener);
+    var grave = new Grave();
     grave.x = point.x;
     grave.y = point.y;
     addChild(grave);
@@ -280,21 +278,23 @@ class Game extends Sprite {
       var child = getChildAt(i);
       if (Type.getClass(child) == Grave) {
         var g:Grave = cast(child, Grave);
-        if (g.intersectsHole(point)) {
+        if (g.hitTestPoint(point.x, point.y)) {
           return g;
         }
       }
     }
+    trace("no grave found at ", point);
     return null;
   }
 
+  // TODO only if has a tombstone
   function fillEmptyGraves() {
     for (i in 0...numChildren) {
       var child = getChildAt(i);
       if (Type.getClass(child) == Grave) {
         var g:Grave = cast(child, Grave);
-        if (g.getState() == FRESH) {
-          g.setState(FULL);
+        if (g.getState() == HOLE) {
+          g.setState(SPAWN_PROGRESS_1);
         }
       }
     }
