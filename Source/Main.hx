@@ -118,6 +118,7 @@ class Main extends Sprite {
           this.state = Transition(frame + 1, from, to);
         }
     }
+    removeChildren();
     switch (this.state) {
       case Title(frame):
         addChild(this.title);
