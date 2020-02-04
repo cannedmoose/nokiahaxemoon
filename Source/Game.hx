@@ -283,7 +283,6 @@ class Game extends Sprite {
   }
 
   public function onBeginDay() {
-    fillEmptyGraves();
     resolveState();
 
     // Reset dampe
@@ -292,22 +291,8 @@ class Game extends Sprite {
     this.dampe.y = 14;
   }
 
-  public function onDayEnd() {}
-
-  // TODO account for "valid-ness"/linked tombstone
-  public function nGraves():Int {
-    var n = 0;
-    for (i in 0...numChildren) {
-      var child = getChildAt(i);
-      if (Type.getClass(child) == Grave) {
-        var g:Grave = cast(child, Grave);
-        trace(g.getState());
-        if (g.getState() == HOLE) {
-          n = n + 1;
-        }
-      }
-    }
-    return n;
+  public function onDayEnd(): Int {
+    return fillEmptyGraves();
   }
 
   function ghostsOnFrame() {
@@ -396,16 +381,18 @@ class Game extends Sprite {
     return null;
   }
 
-  // TODO only if has a tombstone
-  function fillEmptyGraves() {
+  function fillEmptyGraves(): Int {
+    var count = 0;
     for (i in 0...numChildren) {
       var child = getChildAt(i);
       if (Type.getClass(child) == Grave) {
         var g:Grave = cast(child, Grave);
-        if (g.getState() == HOLE) {
+        if (g.getState() == HOLE && getGraveLinkedTombstone(g) != null) {
+          count++;
           g.setState(SPAWN_PROGRESS_1);
         }
       }
     }
+    return count;
   }
 }

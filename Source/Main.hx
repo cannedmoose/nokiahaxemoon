@@ -97,8 +97,7 @@ class Main extends Sprite {
         this.state = Title(frame + 1);
       case InGame(frame):
         if (frame > Game.DayFrames) {
-          this.game.onDayEnd();
-          var nGraves = this.game.nGraves();
+          var nGraves = this.game.onDayEnd();
           this.dayTransition.update(this.dayTransition.day + 1, nGraves, this.dayTransition.money + nGraves * 10);
           this.state = DayInfo(0);
         } else {
