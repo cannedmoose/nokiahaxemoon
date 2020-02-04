@@ -87,8 +87,8 @@ class Grave extends Sprite {
   private function updateRenderSprite() {
     removeChildren();
     var g = new Bitmap(STATE_SPRITES[this.state]);
-    g.x = - GRAVE_WIDTH / 2 - 1;
-    g.y = - GRAVE_HEIGHT / 2 - 1;
+    g.x = - cast(GRAVE_WIDTH, Float) / 2;
+    g.y = - cast(GRAVE_HEIGHT, Float) / 2;
     addChild(g);
   }
 }

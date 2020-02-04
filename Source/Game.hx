@@ -13,6 +13,7 @@ import openfl.Lib.getTimer;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.utils.Assets;
+import CellHelper.Cell;
 
 class Game extends Sprite {
   public static inline var WhiteColor = 0xc7f0d8;
@@ -52,21 +53,30 @@ class Game extends Sprite {
     // this.cacheAsBitmap = true;
     this.shader = new NokiaShader();
 
-    this.dampe = new Dampe(function(point) {
-      trace("digging at", point);
-      var digCell = cellHelper.getClosestCell(dampe.x + point.x, dampe.y + point.y);
+    // Returns null if offscreen
+    var getDampeActionCell = function(intendedPos:Point): Cell {
+      var cell = cellHelper.getClosestCell(dampe.x + intendedPos.x, dampe.y + intendedPos.y);
       var dampeRect = dampe.parentSpaceMovementCollider();
       {
         var potentialGraveRect = Grave.localSpaceGraveHoleRect();
-        var p = cellHelper.getCellCenter(digCell);
+        var p = cellHelper.getCellCenter(cell);
         potentialGraveRect.offset(p.x, p.y);
         if (potentialGraveRect.intersects(dampeRect)) {
-          digCell.col += (dampe.isFacingRight() ? 1 : -1);
-          if (digCell.col < 0 || digCell.col > cellHelper.getMaxCellCol()) {
-            trace("Attempted to dig offscreen");
-            return;
+          cell.col += (dampe.isFacingRight() ? 1 : -1);
+          if (cell.col < 0 || cell.col > cellHelper.getMaxCellCol()) {
+            trace("Attempted to perform action offscreen");
+            return null;
           }
         }
+      }
+      return cell;
+    };
+
+    this.dampe = new Dampe(function(point) {
+      trace("digging at", point);
+      var digCell = getDampeActionCell(point);
+      if (digCell == null) {
+        return;
       }
       var worldPos = cellHelper.getCellCenter(digCell);
       var existingGrave = findGraveHoleIntersecting(worldPos);
@@ -87,10 +97,15 @@ class Game extends Sprite {
       return true;
     }, function(p:Point):Void {
       trace("Placing at ", p);
-      p.x += dampe.x;
-      p.y += dampe.y;
-      var grave = createGraveAtPoint(p);
-      // grave.setState(FULL);
+      var cell = getDampeActionCell(p);
+      if (cell == null) {
+        return;
+      }
+      var cellOrigin = cellHelper.getCellTopLeft(cell);
+      var t = new Tombstone();
+      t.x = cellOrigin.x;
+      t.y = cellOrigin.y + CellHelper.CELL_HEIGHT;
+      addChild(t);
     }, function(p:Point):Bool {
       return isValidDampePosition(p.x, p.y);
     }, isGameActive);

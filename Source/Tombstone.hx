@@ -73,7 +73,7 @@ class Tombstone extends Sprite {
     removeChildren();
     var g = new Bitmap(STATE_SPRITES[this.state]);
     g.x = 0;
-    g.y = this.state == SANCTIFIED ? (-SANCTIFIED_HEIGHT) : TOMBSTONE_HEIGHT;
+    g.y = this.state == SANCTIFIED ? (-SANCTIFIED_HEIGHT) : (-TOMBSTONE_HEIGHT);
     addChild(g);
   }
 }

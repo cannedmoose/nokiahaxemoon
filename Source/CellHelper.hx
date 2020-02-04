@@ -14,9 +14,9 @@ class Cell {
 }
 
 class CellHelper {
-  public final TOP_BORDER = 6;
-  public final CELL_HEIGHT = 7;
-  public final CELL_WIDTH = 7;
+  public static final TOP_BORDER = 6;
+  public static final CELL_HEIGHT = 7;
+  public static final CELL_WIDTH = 7;
 
   private final pixelWidth:Int;
   private final pixelHeight:Int;
@@ -31,6 +31,12 @@ class CellHelper {
       cell.col * CELL_WIDTH + cast(CELL_WIDTH, Float) / 2,
       cell.row * CELL_HEIGHT + cast(CELL_HEIGHT, Float) / 2 + TOP_BORDER
     );
+  }
+
+  public function getCellTopLeft(cell:Cell): Point {
+    return new Point(
+      cell.col * CELL_WIDTH,
+      cell.row * CELL_HEIGHT + TOP_BORDER);
   }
 
   public function getMaxCellCol(): Int {
