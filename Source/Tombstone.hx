@@ -56,7 +56,7 @@ class Tombstone extends Sprite {
     var tombstoneCollidingHeight = 1; // For walking behind tombstone
     // NOTE: always return new instance
     return new Rectangle(
-        0, tombstoneCollidingHeight,
+        0, -tombstoneCollidingHeight,
         TOMBSTONE_WIDTH + 1, tombstoneCollidingHeight + 1);
   }
 
