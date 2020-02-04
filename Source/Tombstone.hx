@@ -48,6 +48,15 @@ class Tombstone extends Sprite {
     updateRenderSprite();
   }
 
+  public function onGraveTrample() {
+    switch state {
+      case NORMAL:
+        setState(DAMAGED);
+      case DAMAGED | SANCTIFIED:
+        // nothing
+    }
+  }
+
   public function getState(): TombstoneState {
     return state;
   }

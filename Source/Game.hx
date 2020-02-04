@@ -201,7 +201,19 @@ class Game extends Sprite {
           }
         case Grave:
           var grave = cast(child, Grave);
-          // TODO change linked tombstone to damaged
+          switch grave.getState() {
+            case SPAWN_PROGRESS_1 | SPAWN_PROGRESS_2:
+              var graveRect = Grave.localSpaceGraveHoleRect();
+              graveRect.offset(child.x, child.y);
+              if (graveRect.intersects(dampeMovementCollisionRect)) {
+                var t = getGraveLinkedTombstone(grave);
+                if (t != null) {
+                  t.onGraveTrample();
+                }
+              }
+            case DIG_1 | DIG_2 | HOLE:
+              // nothing
+          }
       }
     }
 
@@ -248,6 +260,20 @@ class Game extends Sprite {
       }
     }
     return null;
+  }
+
+  // Result may be null
+  private function getGraveLinkedTombstone(g:Grave): Tombstone {
+    final gCell = cellHelper.getClosestCell(g.x, g.y);
+    if (gCell.row == 0) {
+      return null;
+    }
+    final aboveCell = new Cell(gCell.row - 1, gCell.col);
+    final above = getChildAtCell(aboveCell);
+    if (above == null || Type.getClass(above) != Tombstone) {
+      return null;
+    }
+    return cast(above, Tombstone);
   }
 
   public function onBeginDay() {
