@@ -56,11 +56,16 @@ class Game extends Sprite {
       trace("digging at", point);
       var digCell = cellHelper.getClosestCell(dampe.x + point.x, dampe.y + point.y);
       var dampeRect = dampe.parentSpaceMovementCollider();
-      if (cellHelper.getCellCollisionRect(digCell).intersects(dampeRect)) {
-        digCell.col += (dampe.isFacingRight() ? 1 : -1);
-        if (digCell.col < 0 || digCell.col > cellHelper.getMaxCellCol()) {
-          trace("Attempted to dig offscreen");
-          return;
+      {
+        var potentialGraveRect = Grave.localSpaceGraveHoleRect();
+        var p = cellHelper.getCellCenter(digCell);
+        potentialGraveRect.offset(p.x, p.y);
+        if (potentialGraveRect.intersects(dampeRect)) {
+          digCell.col += (dampe.isFacingRight() ? 1 : -1);
+          if (digCell.col < 0 || digCell.col > cellHelper.getMaxCellCol()) {
+            trace("Attempted to dig offscreen");
+            return;
+          }
         }
       }
       var worldPos = cellHelper.getCellCenter(digCell);

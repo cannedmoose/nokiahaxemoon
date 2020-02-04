@@ -33,14 +33,6 @@ class CellHelper {
     );
   }
 
-  public function getCellCollisionRect(cell:Cell): Rectangle {
-    return new Rectangle(
-        cell.col * CELL_WIDTH,
-        cell.row * CELL_HEIGHT + TOP_BORDER,
-        CELL_WIDTH + 1,
-        CELL_HEIGHT + 1);
-  }
-
   public function getMaxCellCol(): Int {
     return Math.round(pixelWidth / CELL_WIDTH);
   }

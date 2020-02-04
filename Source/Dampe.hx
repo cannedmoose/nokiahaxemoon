@@ -77,11 +77,11 @@ class Dampe extends Sprite {
   }
 
   public static function localSpaceMonsterCollider(): Rectangle {
-    return new Rectangle(6, 5, 3, 7);
+    return new Rectangle(8, 5, 3, 7);
   }
 
   public static function localSpaceMovementCollider(): Rectangle {
-    return new Rectangle(6, 11, 3, 1);
+    return new Rectangle(8, 11, 3, 1);
   }
 
   public function parentSpaceMovementCollider(): Rectangle {
@@ -237,7 +237,7 @@ class Dampe extends Sprite {
     var y = Math.floor(index / 3) * Height;
     this.sprite.bitmapData.copyPixels(this.spriteSheet, new Rectangle(x, y, x + Width, y + height), new Point(0, 0));
     if (this.flip) {
-      this.sprite.x = Width + 2;
+      this.sprite.x = Width + 4;
       this.sprite.scaleX = -1;
     } else {
       this.sprite.scaleX = 1;
