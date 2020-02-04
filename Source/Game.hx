@@ -56,7 +56,8 @@ class Game extends Sprite {
     // Returns null if offscreen
     var getDampeActionCell = function(intendedPos:Point): Cell {
       var cell = cellHelper.getClosestCell(dampe.x + intendedPos.x, dampe.y + intendedPos.y);
-      var dampeRect = dampe.parentSpaceMovementCollider();
+      var dampeRect = dampe.parentSpaceMovementCollider().clone();
+      dampeRect.inflate(0, 30);
       {
         var potentialGraveRect = Grave.localSpaceGraveHoleRect();
         var p = cellHelper.getCellCenter(cell);
