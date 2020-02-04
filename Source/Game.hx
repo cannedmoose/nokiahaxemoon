@@ -148,7 +148,7 @@ class Game extends Sprite {
     var dampeRect = Dampe.localSpaceMovementCollider().clone();
     dampeRect.offset(x, y);
     if (dampeRect.x < 0
-      || dampeRect.y < 5
+      || dampeRect.y < 11
       || (dampeRect.x + dampeRect.width > Width)
       || (dampeRect.y + dampeRect.height > Height)) {
       return false;
@@ -252,7 +252,7 @@ class Game extends Sprite {
     this.statusBar.onFrame(1 - (frame / DayFrames));
   }
 
-  private function getChildAtCell(cell:Cell): DisplayObject {
+  private function getChildAtCell(cell:Cell):DisplayObject {
     for (i in 0...numChildren) {
       var child = getChildAt(i);
       if (cellHelper.getClosestCell(child.x, child.y).isSameAs(cell)) {
@@ -317,7 +317,7 @@ class Game extends Sprite {
 
   // Painters algo. Tombstones + Dampe are sorted based on "base y" so dampe is
   // behind some tombstones and in front of others.
-  // Ghosts are on top of everything.
+  // Ghosts and status bar are on top of everything.
   function sortChildren() {
     final tombstoneRect = Tombstone.localSpacePathingCollider();
     final dampeRect = Dampe.localSpaceMovementCollider();
@@ -331,6 +331,8 @@ class Game extends Sprite {
           return child.y + dampeRect.y + dampeRect.height;
         case Ghost:
           return 999 + child.y;
+        case StatusBar:
+          return 10000 + child.y;
         default:
           return -1;
       }
