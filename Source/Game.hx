@@ -67,7 +67,19 @@ class Game extends Sprite {
       } else {
         createGraveAtPoint(worldPos);
       }
-    }, function(p:Point): Bool {
+		},
+		function(p:Point): Bool {
+			return true;
+		}
+		,
+		function(p:Point): Void {
+			trace ("Placing at ", p);
+			p.x += dampe.x;
+			p.y += dampe.y;
+			var grave = createGraveAtPoint(p);
+			grave.setState(FULL);
+		}
+		, function(p:Point): Bool {
       var dampeRect = Dampe.localSpaceMovementCollider().clone();
       dampeRect.offset(p.x, p.y);
       if (dampeRect.x < 0 || dampeRect.y < 5

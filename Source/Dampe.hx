@@ -11,22 +11,25 @@ import openfl.ui.Keyboard;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
 
-// Spritesheet is 3x4 with 10 filled slots
+// Spritesheet is 3x4 with 12 filled slots
 // standing/walking slots with shovel raised/lowered
 // 0 - standing
 // 1 - walking
 // 2 - standing
 // 3 - walking
-// 4:10 - digging
+// 4 transition
+// 5:10 - digging
+// 10:12 - placing
 
 enum DampeState {
   Standing(frame:Int);
   Walking(frame:Int);
   Digging(frame:Int);
+  Placing(frame:Int);
 }
 
 class Dampe extends Sprite {
-  public static inline var Width = 13;
+  public static inline var Width = 14;
   public static inline var Height = 12;
   public static final SPOOK_DURATION_FRAMES = 40;
 
@@ -38,12 +41,18 @@ class Dampe extends Sprite {
   var digCallback:Point->Void;
   var movementValidationCallback:Point->Bool;
   var isGameActive:Void->Bool;
+  var placeGraveValidationCallback:Point->Bool;
+  var placeGraveCallback:Point->Void;
 
   var spookedCountdown = 0;
   var skipFrame = false;
 
-  public function new(digCallback:Point->Void, movementValidationCallback:Point->Bool,
-        isGameActive:Void->Bool) {
+  public function new(
+    digCallback:Point->Void,
+    placeGraveValidationCallback:Point->Bool,
+    placeGraveCallback:Point->Void,
+    movementValidationCallback:Point->Bool,
+    isGameActive:Void->Bool) {
     super();
 
     this.state = Standing(0);
@@ -51,6 +60,8 @@ class Dampe extends Sprite {
     this.sprite = new Bitmap(new BitmapData(Width, Height, true, 0xFFFFFFFF));
     this.direction = new Point(0, 0);
     this.digCallback = digCallback;
+    this.placeGraveCallback = placeGraveCallback;
+    this.placeGraveValidationCallback = placeGraveValidationCallback;
     this.movementValidationCallback = movementValidationCallback;
     this.isGameActive = isGameActive;
     addChild(this.sprite);
@@ -98,32 +109,44 @@ class Dampe extends Sprite {
       case Standing(frame):
         this.state = Standing((frame + 1) % 4);
       case Walking(frame):
-        // Actually take a step and reset direction
-        if (frame % 2 == 1) {
-          if (movementValidationCallback(new Point(this.x + direction.x, this.y + direction.y))) {
-            this.x += this.direction.x;
-            this.y += this.direction.y;
-          }
-          this.direction.x = 0;
-          this.direction.y = 0;
+        // Make sure direction has been pressed.
+        if (this.direction.x == 0 && this.direction.y == 0) {
           this.state = Standing((frame + 1) % 4);
-        } else {
-          // They should move one frame on the second frame of walking
-          this.state = Walking((frame + 1) % 4);
         }
+        // Actually take a step and reset direction
+        if (movementValidationCallback(new Point(this.x + direction.x, this.y + direction.y))) {
+          this.x += this.direction.x;
+          this.y += this.direction.y;
+        }
+        this.direction.x = 0;
+        this.direction.y = 0;
+        this.state = Walking((frame + 1) % 4);
+        
       case Digging(frame):
         if (frame == 6) {
           this.state = Standing(0);
         } else {
           if (frame == 2) {
             // Spawn hole
-            if (flip) {
-              this.digCallback(new Point(14, 11));
-            } else {
-              this.digCallback(new Point(2, 11));
-            }
+            var actionPoint = flip ? new Point(13, 11) : new Point(3, 11);
+            this.digCallback(actionPoint);
           }
           this.state = Digging((frame + 1) % 7);
+        }
+      case Placing(frame):
+        var actionPoint = flip ? new Point(14, 11) : new Point(2, 11);
+        if (frame == 0) {
+          if(!this.placeGraveValidationCallback(actionPoint)) {
+            this.state = Standing(0);
+          } else {
+            this.state = Placing(1);
+          }
+        } if (frame == 2) {
+          this.placeGraveCallback(actionPoint);
+        } if (frame == 3) {
+          this.state = Standing(0);
+        } else {
+          this.state = Placing((frame + 1) % 4);
         }
     }
     this.updateSprite();
@@ -151,6 +174,8 @@ class Dampe extends Sprite {
           this.state = Walking(Math.floor(frame / 2) * 2);
         } else if (e.keyCode == Keyboard.E) {
           this.state = Digging(0);
+        } else if (e.keyCode == Keyboard.Q) {
+          this.state = Placing(0);
         }
       case Walking(frame):
         if (e.keyCode == Keyboard.W) {
@@ -169,8 +194,13 @@ class Dampe extends Sprite {
           this.flip = true;
         } else if (e.keyCode == Keyboard.E) {
           this.state = Digging(0);
+        } else if (e.keyCode == Keyboard.Q) {
+          this.state = Placing(0);
         }
       case Digging(frame):
+        // No-op
+        return;
+      case Placing(frame):
         // No-op
         return;
     }
@@ -185,6 +215,12 @@ class Dampe extends Sprite {
         index = frame;
       case Digging(frame):
         index = frame + 3;
+      case Placing(frame):
+        if (frame == 0 || frame == 3) {
+          index = 4;
+        } else {
+          index = 10 + frame - 1;
+        }
     }
     var x = (index % 3) * Width;
 
