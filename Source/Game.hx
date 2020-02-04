@@ -47,7 +47,7 @@ class Game extends Sprite {
 
     var church = new Church();
     church.x = 0;
-    church.y = 3;
+    church.y = 6;
     addChild(church);
 
     // Enable nokia shader to restrict to monochrome.
@@ -221,9 +221,10 @@ class Game extends Sprite {
     fillEmptyGraves();
     resolveState();
 
-    // Reset timer area
-    this.graphics.beginFill(WhiteColor);
-    this.graphics.drawRect(0, 0, Width, 2);
+    // Reset dampe
+    this.statusBar.tombStones = 3;
+    this.dampe.x = 0;
+    this.dampe.y = 14;
   }
 
   public function onDayEnd() {}
