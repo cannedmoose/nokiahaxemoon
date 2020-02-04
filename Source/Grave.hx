@@ -61,7 +61,7 @@ class Grave extends Sprite {
 
   public static function localSpaceGraveHoleRect(): Rectangle {
     return new Rectangle(
-        - GRAVE_WIDTH / 2 - 1, - GRAVE_HEIGHT / 2 - 1,
+        - cast(GRAVE_WIDTH, Float) / 2, - cast(GRAVE_HEIGHT, Float) / 2,
         GRAVE_WIDTH + 1, GRAVE_HEIGHT + 1);
   }
 
