@@ -118,15 +118,16 @@ class Dampe extends Sprite {
         // Make sure direction has been pressed.
         if (this.direction.x == 0 && this.direction.y == 0) {
           this.state = Standing((frame + 1) % 4);
+        } else {
+          // Actually take a step and reset direction
+          if (movementValidationCallback(new Point(this.x + direction.x, this.y + direction.y))) {
+            this.x += this.direction.x;
+            this.y += this.direction.y;
+          }
+          this.direction.x = 0;
+          this.direction.y = 0;
+          this.state = Walking((frame + 1) % 4);
         }
-        // Actually take a step and reset direction
-        if (movementValidationCallback(new Point(this.x + direction.x, this.y + direction.y))) {
-          this.x += this.direction.x;
-          this.y += this.direction.y;
-        }
-        this.direction.x = 0;
-        this.direction.y = 0;
-        this.state = Walking((frame + 1) % 4);
 
       case Digging(frame):
         if (frame == 6) {
