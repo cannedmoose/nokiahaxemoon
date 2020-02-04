@@ -110,6 +110,7 @@ class Game extends Sprite {
       t.x = cellOrigin.x;
       t.y = cellOrigin.y + CellHelper.CELL_HEIGHT;
       addChild(t);
+      this.statusBar.tombStones -= 1;
     }, function(p:Point):Bool {
       return isValidDampePosition(p.x, p.y);
     }, isGameActive);
