@@ -27,6 +27,7 @@ class Game extends Sprite {
 
   var dampe:Dampe;
   var audioManager:AudioManager;
+  var statusBar:StatusBar;
 
   public function init() {
     this.dampe.init();
@@ -35,10 +36,10 @@ class Game extends Sprite {
   public function new(isGameActive:Void->Bool) {
     super();
 
-    audioManager = new AudioManager();
-
     this.graphics.beginFill(BlackColor);
     this.graphics.drawRect(0, 0, Width, Height);
+
+    audioManager = new AudioManager();
 
     Grave.lazyInit();
     Tombstone.lazyInit();
@@ -54,7 +55,7 @@ class Game extends Sprite {
     this.shader = new NokiaShader();
 
     // Returns null if offscreen
-    var getDampeActionCell = function(intendedPos:Point): Cell {
+    var getDampeActionCell = function(intendedPos:Point):Cell {
       var cell = cellHelper.getClosestCell(dampe.x + intendedPos.x, dampe.y + intendedPos.y);
       var dampeRect = dampe.parentSpaceMovementCollider().clone();
       dampeRect.inflate(0, 30);
@@ -72,6 +73,9 @@ class Game extends Sprite {
       }
       return cell;
     };
+
+    this.statusBar = new StatusBar(3);
+    this.addChild(statusBar);
 
     this.dampe = new Dampe(function(point) {
       trace("digging at", point);
@@ -95,6 +99,9 @@ class Game extends Sprite {
         createGraveAtPoint(worldPos);
       }
     }, function(p:Point):Bool {
+      if (this.statusBar.tombStones <= 0) {
+        return false;
+      }
       var cell = getDampeActionCell(p);
       if (cell == null) {
         return false;
@@ -122,6 +129,7 @@ class Game extends Sprite {
       t.x = cellOrigin.x;
       t.y = cellOrigin.y + CellHelper.CELL_HEIGHT;
       addChild(t);
+      this.statusBar.tombStones -= 1;
     }, function(p:Point):Bool {
       return isValidDampePosition(p.x, p.y);
     }, isGameActive);
@@ -221,14 +229,11 @@ class Game extends Sprite {
   };
 
   public function onFrame(frame:Int) {
-    // Draw timer
-    this.graphics.beginFill(BlackColor);
-    this.graphics.drawRect(Width - Width * (frame / DayFrames), 0, Width * (frame / DayFrames), 2);
-
     this.dampe.onFrame();
     ghostsOnFrame();
     sortChildren();
     resolveState();
+    this.statusBar.onFrame(1 - (frame / DayFrames));
   }
 
   private function getChildAtCell(cell:Cell): DisplayObject {

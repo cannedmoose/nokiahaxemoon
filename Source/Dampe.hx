@@ -47,12 +47,8 @@ class Dampe extends Sprite {
   var spookedCountdown = 0;
   var skipFrame = false;
 
-  public function new(
-    digCallback:Point->Void,
-    placeGraveValidationCallback:Point->Bool,
-    placeGraveCallback:Point->Void,
-    movementValidationCallback:Point->Bool,
-    isGameActive:Void->Bool) {
+  public function new(digCallback:Point->Void, placeGraveValidationCallback:Point->Bool, placeGraveCallback:Point->Void,
+      movementValidationCallback:Point->Bool, isGameActive:Void->Bool) {
     super();
 
     this.state = Standing(0);
@@ -68,7 +64,7 @@ class Dampe extends Sprite {
     this.updateSprite();
   }
 
-  public function isFacingRight(): Bool {
+  public function isFacingRight():Bool {
     return flip;
   }
 
@@ -76,15 +72,15 @@ class Dampe extends Sprite {
     stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
   }
 
-  public static function localSpaceMonsterCollider(): Rectangle {
+  public static function localSpaceMonsterCollider():Rectangle {
     return new Rectangle(8, 5, 3, 7);
   }
 
-  public static function localSpaceMovementCollider(): Rectangle {
+  public static function localSpaceMovementCollider():Rectangle {
     return new Rectangle(8, 11, 3, 1);
   }
 
-  public function parentSpaceMovementCollider(): Rectangle {
+  public function parentSpaceMovementCollider():Rectangle {
     var rect = localSpaceMovementCollider();
     rect.offset(this.x, this.y);
     return rect;
@@ -131,7 +127,7 @@ class Dampe extends Sprite {
         this.direction.x = 0;
         this.direction.y = 0;
         this.state = Walking((frame + 1) % 4);
-        
+
       case Digging(frame):
         if (frame == 6) {
           this.state = Standing(0);
@@ -146,13 +142,15 @@ class Dampe extends Sprite {
       case Placing(frame):
         var actionPoint = flip ? new Point(14, 10) : new Point(2, 10);
         if (frame == 0) {
-          if(!this.placeGraveValidationCallback(actionPoint)) {
+          trace(this.placeGraveValidationCallback(actionPoint));
+          if (!this.placeGraveValidationCallback(actionPoint)) {
             this.state = Standing(0);
           } else {
             this.state = Placing(1);
           }
         } else if (frame == 2) {
           this.placeGraveCallback(actionPoint);
+          this.state = Placing((frame + 1) % 4);
         } else if (frame == 3) {
           this.state = Standing(0);
         } else {
