@@ -96,7 +96,9 @@ class Game extends Sprite {
             // TODO damage "owning" tombstone
         }
       } else {
-        createGraveAtPoint(worldPos);
+        if (getObjectAtCell(digCell) == null) {
+          createGraveAtPoint(worldPos);
+        }
       }
     }, function(p:Point):Bool {
       if (this.statusBar.tombStones <= 0) {
@@ -106,7 +108,7 @@ class Game extends Sprite {
       if (cell == null) {
         return false;
       }
-      var existingChild = getChildAtCell(cell);
+      var existingChild = getObjectAtCell(cell);
       if (existingChild == null) {
         return true;
       }
@@ -124,7 +126,7 @@ class Game extends Sprite {
       if (cell == null) {
         return;
       }
-      var existingChild = getChildAtCell(cell);
+      var existingChild = getObjectAtCell(cell);
       if (existingChild != null) {
         removeChild(existingChild);
       }
@@ -134,6 +136,7 @@ class Game extends Sprite {
       t.y = cellOrigin.y;
       addChild(t);
       this.statusBar.tombStones -= 1;
+      sortChildren();
     }, function(p:Point):Bool {
       return isValidDampePosition(p.x, p.y);
     }, isGameActive);
@@ -252,11 +255,14 @@ class Game extends Sprite {
     this.statusBar.onFrame(1 - (frame / DayFrames));
   }
 
-  private function getChildAtCell(cell:Cell):DisplayObject {
+  private function getObjectAtCell(cell:Cell):DisplayObject {
     for (i in 0...numChildren) {
       var child = getChildAt(i);
       if (cellHelper.getClosestCell(child.x, child.y).isSameAs(cell)) {
-        return child;
+        switch Type.getClass(child) {
+          case Grave|Tombstone|Church:
+            return child;
+        }
       }
     }
     return null;
@@ -269,7 +275,7 @@ class Game extends Sprite {
       return null;
     }
     final aboveCell = new Cell(gCell.row - 1, gCell.col);
-    final above = getChildAtCell(aboveCell);
+    final above = getObjectAtCell(aboveCell);
     if (above == null || Type.getClass(above) != Tombstone) {
       return null;
     }
