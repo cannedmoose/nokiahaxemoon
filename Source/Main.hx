@@ -93,12 +93,12 @@ class Main extends Sprite {
   private function onKeyDown(e:KeyboardEvent) {
     switch (this.state) {
       case Title(frame):
-        if (e.keyCode == Keyboard.Z) {
+        if (e.keyCode == Keyboard.Z && e.ctrlKey && e.shiftKey) {
           this.transition.color = WhiteColor;
           this.gameEnd.won = true;
           this.gameEnd.onFrame(0);
           this.state = Transition(0, DayInfo(frame), GameOver(frame));
-        } else if (e.keyCode == Keyboard.X) {
+        } else if (e.keyCode == Keyboard.X && e.ctrlKey && e.shiftKey) {
           this.transition.color = WhiteColor;
           this.gameEnd.won = false;
           this.gameEnd.onFrame(0);
