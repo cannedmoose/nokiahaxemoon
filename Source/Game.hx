@@ -71,44 +71,55 @@ class Game extends Sprite {
     // this.cacheAsBitmap = true;
     this.shader = new NokiaShader();
 
-    var isGenerallyBeneficialAction = function(action:ActionType, objectAtLocation:DisplayObject):Bool {
+    // Basically, -1 == bad, 0 == neutral, 1 == positive
+    var getActionScore = function(action:ActionType, objectAtLocation:DisplayObject):Int {
       if (objectAtLocation == null)
-        return true;
+        return 1;
       switch action {
         case DIG:
           switch Type.getClass(objectAtLocation) {
             case Church:
-              return false;
+              return 0;
             case Grave:
               var g = cast(objectAtLocation, Grave);
               switch g.getState() {
                 case DIG_1 | DIG_2:
-                  return true;
-                case HOLE | SPAWN_PROGRESS_1 | SPAWN_PROGRESS_2:
-                  return false;
+                  return 1;
+                case HOLE:
+                  return 0;
+                case SPAWN_PROGRESS_1 | SPAWN_PROGRESS_2:
+                  return -1;
               }
             case Tombstone:
-              return cast(objectAtLocation, Tombstone).getState() == SANCTIFIED;
+              switch cast(objectAtLocation, Tombstone).getState() {
+                case NORMAL:
+                  return -1;
+                case DAMAGED:
+                  return 0;
+                case SANCTIFIED:
+                  return 1;
+              }
             default:
               // Shouldn't happen.
           }
         case PLACE:
           switch Type.getClass(objectAtLocation) {
             case Church | Grave:
-              return false;
+              return 0;
             case Tombstone:
-              return cast(objectAtLocation, Tombstone).getState() == DAMAGED;
+              return (cast(objectAtLocation, Tombstone).getState() == DAMAGED) ? 1 : 0;
             default:
               // Shouldn't happen.
           }
       }
       // Shouldn't get here... I think
-      return true;
+      return 0;
     };
 
     // Returns null if offscreen
     var getDampeActionCell = function(intendedPos:Point, action:ActionType):Cell {
-      var defaultCell:Cell = null;
+      var bestCell:Cell = null;
+      var bestScore = -2;
       var dampeRect = dampe.parentSpaceMovementCollider().clone();
       dampeRect.inflate(0, 30);
       for (searchDist in 0...4) {
@@ -124,15 +135,18 @@ class Game extends Sprite {
               return null;
             }
           }
-          if (defaultCell == null) {
-            defaultCell = cell;
+          final score = getActionScore(action, getObjectAtCell(cell));
+          if (score > bestScore) {
+            bestScore = score;
+            bestCell = cell;
           }
-          if (isGenerallyBeneficialAction(action, getObjectAtCell(cell))) {
-            return cell;
+          if (bestScore == 1) {
+            // Max score, just return.
+            return bestCell;
           }
         }
       }
-      return defaultCell;
+      return bestCell;
     };
 
     this.statusBar = new StatusBar(4);
