@@ -33,7 +33,7 @@ class Game extends Sprite {
   public static inline var Height = 48;
   private static final cellHelper = new CellHelper(Width, Height);
 
-  public static inline var DayFrames = 40;
+  public static inline var DayFrames = 200;
 
   private var ghostsReleasedToday = 0;
 
