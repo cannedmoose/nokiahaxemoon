@@ -32,7 +32,12 @@ class AudioManager {
   }
 
   public function playVictory() {
-    playOneOffSound(victory, -1);
+    backgroundMusicChannel.stop();
+    var timer = new haxe.Timer(500);
+    timer.run = function() {
+      playOneOffSound(victory, -1);
+      timer.stop();
+    };
   }
 
   public function playSuccess() {
