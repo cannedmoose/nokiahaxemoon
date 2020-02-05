@@ -28,6 +28,12 @@ enum DampeState {
   Placing(frame:Int);
 }
 
+enum KeyState {
+  PRESSED;
+  RELEASED_BUT_UNPROCESSED;
+  RELEASED;
+}
+
 class Dampe extends Sprite {
   public static inline var Width = 14;
   public static inline var Height = 12;
@@ -46,6 +52,8 @@ class Dampe extends Sprite {
 
   var spookedCountdown = 0;
   var skipFrame = false;
+
+  var pressedKeys:Map<Int, KeyState> = new Map();
 
   public function new(digCallback:Point->Void, placeGraveValidationCallback:Point->Bool, placeGraveCallback:Point->Void,
       movementValidationCallback:Point->Bool, isGameActive:Void->Bool) {
@@ -70,7 +78,12 @@ class Dampe extends Sprite {
   }
 
   public function init() {
-    stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+    stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
+      pressedKeys[e.keyCode] = PRESSED;
+    });
+    stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
+      pressedKeys[e.keyCode] = (isGameActive() && isKeyPressed(e.keyCode)) ? RELEASED_BUT_UNPROCESSED : RELEASED;
+    });
   }
 
   public static function localSpaceMonsterCollider():Rectangle {
@@ -107,6 +120,8 @@ class Dampe extends Sprite {
   }
 
   public function onFrame() {
+    handleInput();
+
     if (spookedCountdown > 0) {
       spookedCountdown--;
     }
@@ -171,57 +186,63 @@ class Dampe extends Sprite {
     this.updateSprite();
   }
 
-  private function onKeyDown(e:KeyboardEvent) {
-    if (!isGameActive()) {
-      return;
-    }
+  private function isKeyPressed(keyCode:Int): Bool {
+    var x:Null<KeyState> = pressedKeys.get(keyCode);
+    return x != null && (x == PRESSED || x == RELEASED_BUT_UNPROCESSED);
+  }
+
+  private function handleInput() {
     switch (this.state) {
       case Standing(frame):
-        if (e.keyCode == Keyboard.W) {
+        if (isKeyPressed(Keyboard.W)) {
           this.direction.y = -1;
           this.state = Walking(Math.floor(frame / 2) * 2);
-        } else if (e.keyCode == Keyboard.S) {
+        } else if (isKeyPressed(Keyboard.S)) {
           this.direction.y = 1;
           this.state = Walking(Math.floor(frame / 2) * 2);
-        } else if (e.keyCode == Keyboard.A) {
+        } else if (isKeyPressed(Keyboard.A)) {
           this.direction.x = -1;
           this.flip = false;
           this.state = Walking(Math.floor(frame / 2) * 2);
-        } else if (e.keyCode == Keyboard.D) {
+        } else if (isKeyPressed(Keyboard.D)) {
           this.direction.x = 1;
           this.flip = true;
           this.state = Walking(Math.floor(frame / 2) * 2);
-        } else if (e.keyCode == Keyboard.E) {
+        } else if (isKeyPressed(Keyboard.E)) {
           this.state = Digging(0);
-        } else if (e.keyCode == Keyboard.Q) {
+        } else if (isKeyPressed(Keyboard.Q)) {
           this.state = Placing(0);
         }
       case Walking(frame):
-        if (e.keyCode == Keyboard.W) {
+        if (isKeyPressed(Keyboard.W)) {
           this.direction.y = -1;
           this.direction.x = 0;
-        } else if (e.keyCode == Keyboard.S) {
+        } else if (isKeyPressed(Keyboard.S)) {
           this.direction.y = 1;
           this.direction.x = 0;
-        } else if (e.keyCode == Keyboard.A) {
+        } else if (isKeyPressed(Keyboard.A)) {
           this.direction.x = -1;
           this.direction.y = 0;
           this.flip = false;
-        } else if (e.keyCode == Keyboard.D) {
+        } else if (isKeyPressed(Keyboard.D)) {
           this.direction.x = 1;
           this.direction.y = 0;
           this.flip = true;
-        } else if (e.keyCode == Keyboard.E) {
+        } else if (isKeyPressed(Keyboard.E)) {
           this.state = Digging(0);
-        } else if (e.keyCode == Keyboard.Q) {
+        } else if (isKeyPressed(Keyboard.Q)) {
           this.state = Placing(0);
         }
       case Digging(frame):
         // No-op
-        return;
       case Placing(frame):
         // No-op
-        return;
+    }
+
+    for (key in pressedKeys.keys()) {
+      if (pressedKeys[key] == RELEASED_BUT_UNPROCESSED) {
+        pressedKeys[key] = RELEASED;
+      }
     }
   }
 
