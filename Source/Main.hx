@@ -19,6 +19,7 @@ import openfl.geom.Rectangle;
 import openfl.utils.Assets;
 import openfl.events.KeyboardEvent;
 import openfl.ui.Keyboard;
+import haxe.ds.ReadOnlyArray;
 
 enum State {
   Title(frame:Int);
@@ -33,6 +34,12 @@ class Main extends Sprite {
 
   public static inline var WhiteColor = 0xc7f0d8;
   public static inline var BlackColor = 0x43523d;
+
+  // Day lengths in seconds
+  public static var DayLengths:ReadOnlyArray<Int> = [80, 60, 60, 50, 50, 40, 40, 40, 40, 30, 30, 30, 20];
+
+  // Milliseconds in a frame
+  public static inline var FrameTime = 200;
 
   public var game:Game;
   public var dayTransition:DayTransition;
@@ -70,7 +77,7 @@ class Main extends Sprite {
     this.addEventListener(Event.ENTER_FRAME, function(e) {
       var currentTime = getTimer();
       var deltaTime = currentTime - cacheTime;
-      if (deltaTime > 200) {
+      if (deltaTime > FrameTime) {
         this.onFrame();
         cacheTime = currentTime;
       }
@@ -83,14 +90,15 @@ class Main extends Sprite {
     switch (this.state) {
       case Title(frame):
         if (e.keyCode == Keyboard.E && frame > 2) {
-          this.game.onBeginDay();
+          trace(DayLengths[this.dayTransition.day], FrameTime, this.dayTransition.day);
+          this.game.onBeginDay(Math.round(1000 * DayLengths[this.dayTransition.day] / FrameTime));
           this.transition.color = BlackColor;
           this.state = Transition(0, Title(frame), InGame(0));
         }
       case DayInfo(frame):
         if (e.keyCode == Keyboard.E && frame > 2) {
           if (this.dayTransition.day < 13) {
-            this.game.onBeginDay();
+            this.game.onBeginDay(Math.round(1000 * DayLengths[this.dayTransition.day] / FrameTime));
             this.transition.color = BlackColor;
             this.state = Transition(0, DayInfo(frame), InGame(0));
           } else {
@@ -116,7 +124,7 @@ class Main extends Sprite {
         this.title.onFrame(frame);
         this.state = Title(frame + 1);
       case InGame(frame):
-        if (frame > Game.DayFrames) {
+        if (frame > this.game.dayFrames) {
           var dayData = this.game.onDayEnd();
           var gravesFilled = dayData.gravesFilled;
           var ghostsReleased = dayData.ghostsReleased;

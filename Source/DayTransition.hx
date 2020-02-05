@@ -41,21 +41,25 @@ class DayTransition extends Sprite {
     daySprite = new DisplayNumber(day, 2);
     daySprite.x = 30;
     daySprite.y = 2;
+    this.day = day;
     addChild(daySprite);
 
     gravesSprite = new DisplayNumber(graves, 1);
     gravesSprite.x = 20;
     gravesSprite.y = 21;
+    this.graves = graves;
     addChild(gravesSprite);
 
     crossSprite = new DisplayNumber(crosses, 1);
     crossSprite.x = 20;
     crossSprite.y = 35;
+    this.crosses = crosses;
     addChild(crossSprite);
 
     moneySprite = new DisplayNumber(money, 3);
     moneySprite.x = 44;
     moneySprite.y = 25;
+    this.money = money;
     addChild(moneySprite);
 
     totalDays = new DisplayNumber(13, 2);

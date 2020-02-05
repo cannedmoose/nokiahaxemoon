@@ -38,7 +38,7 @@ class Game extends Sprite {
   public static inline var Height = 48;
   private static final cellHelper = new CellHelper(Width, Height);
 
-  public static inline var DayFrames = 200;
+  public var dayFrames = 1;
 
   private var ghostsReleasedToday = 0;
 
@@ -71,8 +71,9 @@ class Game extends Sprite {
     // this.cacheAsBitmap = true;
     this.shader = new NokiaShader();
 
-    var isGenerallyBeneficialAction = function(action:ActionType, objectAtLocation:DisplayObject): Bool {
-      if (objectAtLocation == null) return true;
+    var isGenerallyBeneficialAction = function(action:ActionType, objectAtLocation:DisplayObject):Bool {
+      if (objectAtLocation == null)
+        return true;
       switch action {
         case DIG:
           switch Type.getClass(objectAtLocation) {
@@ -81,9 +82,9 @@ class Game extends Sprite {
             case Grave:
               var g = cast(objectAtLocation, Grave);
               switch g.getState() {
-                case DIG_1|DIG_2:
+                case DIG_1 | DIG_2:
                   return true;
-                case HOLE|SPAWN_PROGRESS_1|SPAWN_PROGRESS_2:
+                case HOLE | SPAWN_PROGRESS_1 | SPAWN_PROGRESS_2:
                   return false;
               }
             case Tombstone:
@@ -93,7 +94,7 @@ class Game extends Sprite {
           }
         case PLACE:
           switch Type.getClass(objectAtLocation) {
-            case Church|Grave:
+            case Church | Grave:
               return false;
             case Tombstone:
               return cast(objectAtLocation, Tombstone).getState() == DAMAGED;
@@ -134,7 +135,7 @@ class Game extends Sprite {
       return defaultCell;
     };
 
-    this.statusBar = new StatusBar(3);
+    this.statusBar = new StatusBar(4);
     this.addChild(statusBar);
 
     this.dampe = new Dampe(function(point) {
@@ -338,7 +339,7 @@ class Game extends Sprite {
     ghostsOnFrame();
     sortChildren();
     resolveState();
-    this.statusBar.onFrame(1 - (frame / DayFrames));
+    this.statusBar.onFrame(1 - (frame / dayFrames));
   }
 
   private function digTombstone(t:Tombstone) {
@@ -388,9 +389,11 @@ class Game extends Sprite {
     return cast(above, Tombstone);
   }
 
-  public function onBeginDay() {
+  public function onBeginDay(dayFrames:Int) {
     resolveState();
     ghostsReleasedToday = 0;
+
+    this.dayFrames = dayFrames;
 
     // Reset dampe
     this.statusBar.tombStones = 4;
