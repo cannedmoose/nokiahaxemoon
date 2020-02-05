@@ -21,6 +21,9 @@ class CellHelper {
   public static final TOP_BORDER = 6;
   public static final CELL_HEIGHT = 7;
   public static final CELL_WIDTH = 7;
+  public static function CELL_SIZE() {
+    return new Rectangle(0, 0, CELL_WIDTH + 1, CELL_HEIGHT + 1);
+  }
 
   private final pixelWidth:Int;
   private final pixelHeight:Int;
