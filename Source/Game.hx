@@ -25,6 +25,11 @@ class EndOfDayData {
   }
 }
 
+enum ActionType {
+  DIG;
+  PLACE;
+}
+
 class Game extends Sprite {
   public static inline var WhiteColor = 0xc7f0d8;
   public static inline var BlackColor = 0x43523d;
@@ -66,24 +71,67 @@ class Game extends Sprite {
     // this.cacheAsBitmap = true;
     this.shader = new NokiaShader();
 
+    var isGenerallyBeneficialAction = function(action:ActionType, objectAtLocation:DisplayObject): Bool {
+      if (objectAtLocation == null) return true;
+      switch action {
+        case DIG:
+          switch Type.getClass(objectAtLocation) {
+            case Church:
+              return false;
+            case Grave:
+              var g = cast(objectAtLocation, Grave);
+              switch g.getState() {
+                case DIG_1|DIG_2:
+                  return true;
+                case HOLE|SPAWN_PROGRESS_1|SPAWN_PROGRESS_2:
+                  return false;
+              }
+            case Tombstone:
+              return cast(objectAtLocation, Tombstone).getState() == SANCTIFIED;
+            default:
+              // Shouldn't happen.
+          }
+        case PLACE:
+          switch Type.getClass(objectAtLocation) {
+            case Church|Grave:
+              return false;
+            case Tombstone:
+              return cast(objectAtLocation, Tombstone).getState() == DAMAGED;
+            default:
+              // Shouldn't happen.
+          }
+      }
+      // Shouldn't get here... I think
+      return true;
+    };
+
     // Returns null if offscreen
-    var getDampeActionCell = function(intendedPos:Point):Cell {
-      var cell = cellHelper.getClosestCell(dampe.x + intendedPos.x, dampe.y + intendedPos.y);
+    var getDampeActionCell = function(intendedPos:Point, action:ActionType):Cell {
+      var defaultCell:Cell = null;
       var dampeRect = dampe.parentSpaceMovementCollider().clone();
       dampeRect.inflate(0, 30);
-      {
-        var potentialGraveRect = Grave.localSpaceGraveHoleRect();
-        var p = cellHelper.getCellCenter(cell);
-        potentialGraveRect.offset(p.x, p.y);
-        if (potentialGraveRect.intersects(dampeRect)) {
-          cell.col += (dampe.isFacingRight() ? 1 : -1);
-          if (cell.col < 0 || cell.col > cellHelper.getMaxCellCol()) {
-            trace("Attempted to perform action offscreen");
-            return null;
+      for (searchDist in 0...4) {
+        for (searchDir in [-1, 1]) {
+          var cell = cellHelper.getClosestCell(dampe.x + intendedPos.x, dampe.y + intendedPos.y + searchDist * searchDir);
+          var potentialCellRect = CellHelper.CELL_SIZE();
+          var p = cellHelper.getCellTopLeft(cell);
+          potentialCellRect.offset(p.x, p.y);
+          if (potentialCellRect.intersects(dampeRect)) {
+            cell.col += (dampe.isFacingRight() ? 1 : -1);
+            if (cell.col < 0 || cell.col > cellHelper.getMaxCellCol()) {
+              trace("Attempted to perform action offscreen");
+              return null;
+            }
+          }
+          if (defaultCell == null) {
+            defaultCell = cell;
+          }
+          if (isGenerallyBeneficialAction(action, getObjectAtCell(cell))) {
+            return cell;
           }
         }
       }
-      return cell;
+      return defaultCell;
     };
 
     this.statusBar = new StatusBar(3);
@@ -91,7 +139,7 @@ class Game extends Sprite {
 
     this.dampe = new Dampe(function(point) {
       trace("digging at", point);
-      var digCell = getDampeActionCell(point);
+      var digCell = getDampeActionCell(point, DIG);
       if (digCell == null) {
         return;
       }
@@ -124,7 +172,7 @@ class Game extends Sprite {
       if (this.statusBar.tombStones <= 0) {
         return false;
       }
-      var cell = getDampeActionCell(p);
+      var cell = getDampeActionCell(p, PLACE);
       if (cell == null) {
         return false;
       }
@@ -144,7 +192,7 @@ class Game extends Sprite {
       return true;
     }, function(p:Point):Void {
       trace("Placing at ", p);
-      var cell = getDampeActionCell(p);
+      var cell = getDampeActionCell(p, PLACE);
       if (cell == null) {
         return;
       }
