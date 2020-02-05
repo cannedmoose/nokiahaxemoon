@@ -18,6 +18,7 @@
   <assets path="Assets/mg_alert.mp3" />
   <assets path="Assets/success.mp3" />
   <assets path="Assets/victory.mp3" />
+  <assets path="Assets/sad_face.mp3" />
 	<assets path="Assets/dampe.png" />
 	<assets path="Assets/cross2.png" />
 	<assets path="Assets/dampe_alt.png" />

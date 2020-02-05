@@ -57,6 +57,7 @@ class GameEnd extends Sprite {
         this.state = Walking(-1, true);
         this.dampe.x = 61;
         this.dampe.y = Height - DampeHeight - 1;
+        audioManager.playDefeat();
       }
     }
     if (won) {

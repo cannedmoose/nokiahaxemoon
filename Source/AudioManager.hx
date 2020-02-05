@@ -12,6 +12,7 @@ class AudioManager {
   private final alert:Sound;
   private final success:Sound;
   private final victory:Sound;
+  private final defeat:Sound;
   private final backgroundMusic:Sound;
 
   private var backgroundMusicChannel:SoundChannel;
@@ -24,6 +25,7 @@ class AudioManager {
     alert = Assets.getSound("Assets/mg_alert.mp3");
     success = Assets.getSound("Assets/success.mp3");
     victory = Assets.getSound("Assets/victory.mp3");
+    defeat = Assets.getSound("Assets/sad_face.mp3");
     resumeBackgroundMusic();
   }
 
@@ -36,6 +38,15 @@ class AudioManager {
     var timer = new haxe.Timer(500);
     timer.run = function() {
       playOneOffSound(victory, -1);
+      timer.stop();
+    };
+  }
+
+  public function playDefeat() {
+    backgroundMusicChannel.stop();
+    var timer = new haxe.Timer(500);
+    timer.run = function() {
+      playOneOffSound(defeat, -1);
       timer.stop();
     };
   }
