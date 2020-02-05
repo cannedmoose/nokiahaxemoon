@@ -893,9 +893,9 @@ ApplicationMain.create = function(config) {
 	ManifestResources.init(config);
 	var _this = app.meta;
 	if(__map_reserved["build"] != null) {
-		_this.setReserved("build","47");
+		_this.setReserved("build","132");
 	} else {
-		_this.h["build"] = "47";
+		_this.h["build"] = "132";
 	}
 	var _this1 = app.meta;
 	if(__map_reserved["company"] != null) {
@@ -4226,13 +4226,25 @@ var Main = function() {
 	var _gthis = this;
 	openfl_display_Sprite.call(this);
 	this.set_shader(new NokiaShader());
-	this.game = new Game();
+	this.game = new Game(function() {
+		var _g = _gthis.state;
+		if(_g._hx_index == 1) {
+			var frame = _g.frame;
+			return true;
+		} else {
+			return false;
+		}
+	});
 	this.addChild(this.game);
 	this.game.init();
-	this.dayTransition = new DayTransition(0,0,0);
+	this.dayTransition = new DayTransition(0,0,0,0);
 	this.addChild(this.dayTransition);
+	this.transition = new Transition(4411965);
+	this.addChild(this.transition);
 	this.title = new Sky();
 	this.addChild(this.title);
+	this.gameEnd = new GameEnd(false);
+	this.addChild(this.gameEnd);
 	this.state = State.Title(0);
 	var cacheTime = openfl_Lib.getTimer();
 	this.addEventListener("enterFrame",function(e) {
@@ -4253,21 +4265,40 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 	,game: null
 	,dayTransition: null
 	,title: null
+	,transition: null
+	,gameEnd: null
 	,onKeyDown: function(e) {
 		var _g = this.state;
 		switch(_g._hx_index) {
 		case 0:
 			var frame = _g.frame;
 			if(e.keyCode == 69 && frame > 2) {
-				this.game.onBeginDay();
-				this.state = State.InGame(0);
+				haxe_Log.trace(Main.DayLengths[this.dayTransition.day],{ fileName : "Source/Main.hx", lineNumber : 93, className : "Main", methodName : "onKeyDown", customParams : [200,this.dayTransition.day]});
+				this.game.onBeginDay(Math.round(1000 * Main.DayLengths[this.dayTransition.day] / 200));
+				this.transition.color = 4411965;
+				this.state = State.Transition(0,State.Title(frame),State.InGame(0));
 			}
 			break;
 		case 2:
 			var frame1 = _g.frame;
 			if(e.keyCode == 69 && frame1 > 2) {
-				this.game.onBeginDay();
-				this.state = State.InGame(0);
+				if(this.dayTransition.day < 13) {
+					this.game.onBeginDay(Math.round(1000 * Main.DayLengths[this.dayTransition.day] / 200));
+					this.transition.color = 4411965;
+					this.state = State.Transition(0,State.DayInfo(frame1),State.InGame(0));
+				} else {
+					this.transition.color = 13103320;
+					this.gameEnd.won = this.dayTransition.money >= 666;
+					this.gameEnd.onFrame(0);
+					this.state = State.Transition(0,State.DayInfo(frame1),State.GameOver(frame1));
+				}
+			}
+			break;
+		case 3:
+			var frame2 = _g.frame;
+			if(e.keyCode == 69 && frame2 > 2) {
+				this.transition.color = 13103320;
+				this.state = State.Transition(0,State.GameOver(frame2),State.Title(0));
 			}
 			break;
 		default:
@@ -4284,11 +4315,13 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 			break;
 		case 1:
 			var frame1 = _g.frame;
-			if(frame1 > 200) {
-				this.game.onDayEnd();
-				var nGraves = this.game.nGraves();
-				this.dayTransition.update(this.dayTransition.day + 1,nGraves,this.dayTransition.money + nGraves * 10);
-				this.state = State.DayInfo(0);
+			if(frame1 > this.game.dayFrames) {
+				var dayData = this.game.onDayEnd();
+				var gravesFilled = dayData.gravesFilled;
+				var ghostsReleased = dayData.ghostsReleased;
+				this.dayTransition.update(this.dayTransition.day + 1,gravesFilled,ghostsReleased,this.dayTransition.money + gravesFilled * 5 + ghostsReleased * 20);
+				this.transition.color = 13103320;
+				this.state = State.Transition(0,State.InGame(0),State.DayInfo(0));
 			} else {
 				this.game.onFrame(frame1);
 				this.state = State.InGame(frame1 + 1);
@@ -4300,31 +4333,89 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 			this.state = State.DayInfo(frame2 + 1);
 			break;
 		case 3:
+			var frame3 = _g.frame;
+			this.gameEnd.onFrame(frame3);
+			this.state = State.GameOver(frame3 + 1);
+			break;
+		case 4:
 			var to = _g.next;
 			var from = _g.current;
-			var frame3 = _g.frame;
-			this.state = State.InGame(0);
+			var frame4 = _g.frame;
+			this.transition.onFrame(frame4);
+			if(frame4 > 8) {
+				this.state = to;
+			} else {
+				this.state = State.Transition(frame4 + 1,from,to);
+			}
 			break;
 		}
-		var _g7 = this.state;
-		switch(_g7._hx_index) {
+		this.removeChildren();
+		var _g8 = this.state;
+		switch(_g8._hx_index) {
 		case 0:
-			var frame4 = _g7.frame;
+			var frame5 = _g8.frame;
 			this.addChild(this.title);
 			break;
 		case 1:
-			var frame5 = _g7.frame;
+			var frame6 = _g8.frame;
 			this.addChild(this.game);
 			break;
 		case 2:
-			var frame6 = _g7.frame;
+			var frame7 = _g8.frame;
 			this.addChild(this.dayTransition);
 			break;
 		case 3:
-			var to1 = _g7.next;
-			var from1 = _g7.current;
-			var frame7 = _g7.frame;
-			this.addChild(this.game);
+			var frame8 = _g8.frame;
+			this.addChild(this.gameEnd);
+			break;
+		case 4:
+			var to1 = _g8.next;
+			var from1 = _g8.current;
+			var frame9 = _g8.frame;
+			if(frame9 <= 5) {
+				switch(from1._hx_index) {
+				case 0:
+					var frame10 = from1.frame;
+					this.addChild(this.title);
+					break;
+				case 1:
+					var frame11 = from1.frame;
+					this.addChild(this.game);
+					break;
+				case 2:
+					var frame12 = from1.frame;
+					this.addChild(this.dayTransition);
+					break;
+				case 3:
+					var frame13 = from1.frame;
+					this.addChild(this.gameEnd);
+					break;
+				default:
+					this.addChild(this.game);
+				}
+			} else {
+				switch(to1._hx_index) {
+				case 0:
+					var frame14 = to1.frame;
+					this.addChild(this.title);
+					break;
+				case 1:
+					var frame15 = to1.frame;
+					this.addChild(this.game);
+					break;
+				case 2:
+					var frame16 = to1.frame;
+					this.addChild(this.dayTransition);
+					break;
+				case 3:
+					var frame17 = to1.frame;
+					this.addChild(this.gameEnd);
+					break;
+				default:
+					this.addChild(this.game);
+				}
+			}
+			this.addChild(this.transition);
 			break;
 		}
 	}
@@ -4341,6 +4432,121 @@ DocumentClass.__super__ = Main;
 DocumentClass.prototype = $extend(Main.prototype,{
 	__class__: DocumentClass
 });
+var AudioManager = function() {
+	this.musicStartTime = 0;
+	this.isNonMusicSoundPlaying = false;
+	this.backgroundMusic = openfl_utils_Assets.getSound("Assets/k2lu.mp3");
+	this.ohNo = openfl_utils_Assets.getSound("Assets/oh_no.mp3");
+	this.alert = openfl_utils_Assets.getSound("Assets/mg_alert.mp3");
+	this.success = openfl_utils_Assets.getSound("Assets/success.mp3");
+	this.resumeBackgroundMusic();
+};
+$hxClasses["AudioManager"] = AudioManager;
+AudioManager.__name__ = "AudioManager";
+AudioManager.prototype = {
+	ohNo: null
+	,alert: null
+	,success: null
+	,backgroundMusic: null
+	,backgroundMusicChannel: null
+	,isNonMusicSoundPlaying: null
+	,musicStartTime: null
+	,playOhNo: function() {
+		this.playOneOffSound(this.ohNo,1000);
+	}
+	,playSuccess: function() {
+		this.playOneOffSound(this.success,1000);
+	}
+	,playAlert: function() {
+		this.playOneOffSound(this.alert,1000);
+	}
+	,playOneOffSound: function(s,timeMS) {
+		if(this.isNonMusicSoundPlaying) {
+			return;
+		}
+		this.isNonMusicSoundPlaying = true;
+		this.musicStartTime = this.backgroundMusicChannel.get_position();
+		this.backgroundMusicChannel.stop();
+		s.play(0,1);
+		this.markCurrentSoundCompleteAfter(timeMS);
+	}
+	,markCurrentSoundCompleteAfter: function(delayMS) {
+		var _gthis = this;
+		var timer = new haxe_Timer(delayMS);
+		timer.run = function() {
+			_gthis.isNonMusicSoundPlaying = false;
+			_gthis.resumeBackgroundMusic();
+			timer.stop();
+		};
+	}
+	,resumeBackgroundMusic: function() {
+		this.backgroundMusicChannel = this.backgroundMusic.play(0,9999,new openfl_media_SoundTransform(0.6));
+		this.backgroundMusicChannel.set_position(this.musicStartTime);
+	}
+	,__class__: AudioManager
+};
+var Cell = function(row,col) {
+	this.row = row;
+	this.col = col;
+};
+$hxClasses["Cell"] = Cell;
+Cell.__name__ = "Cell";
+Cell.prototype = {
+	row: null
+	,col: null
+	,isSameAs: function(other) {
+		if(this.row == other.row) {
+			return this.col == other.col;
+		} else {
+			return false;
+		}
+	}
+	,__class__: Cell
+};
+var CellHelper = function(pixelWidth,pixelHeight) {
+	this.pixelWidth = pixelWidth;
+	this.pixelHeight = pixelHeight;
+};
+$hxClasses["CellHelper"] = CellHelper;
+CellHelper.__name__ = "CellHelper";
+CellHelper.CELL_SIZE = function() {
+	return new openfl_geom_Rectangle(0,0,CellHelper.CELL_WIDTH + 1,CellHelper.CELL_HEIGHT + 1);
+};
+CellHelper.clamp = function(v,low,high) {
+	if(v < low) {
+		return low;
+	} else if(v > high) {
+		return high;
+	} else {
+		return v;
+	}
+};
+CellHelper.prototype = {
+	pixelWidth: null
+	,pixelHeight: null
+	,getCellCenter: function(cell) {
+		return new openfl_geom_Point(cell.col * CellHelper.CELL_WIDTH + js_Boot.__cast(CellHelper.CELL_WIDTH , Float) / 2,cell.row * CellHelper.CELL_HEIGHT + js_Boot.__cast(CellHelper.CELL_HEIGHT , Float) / 2 + CellHelper.TOP_BORDER);
+	}
+	,getCellTopLeft: function(cell) {
+		return new openfl_geom_Point(cell.col * CellHelper.CELL_WIDTH,cell.row * CellHelper.CELL_HEIGHT + CellHelper.TOP_BORDER);
+	}
+	,getMaxCellCol: function() {
+		return Math.round(this.pixelWidth / CellHelper.CELL_WIDTH);
+	}
+	,getClosestCell: function(x,y) {
+		return new Cell(this.getRow(y),this.getCol(x));
+	}
+	,getClosestCellP: function(p) {
+		return this.getClosestCell(p.x,p.y);
+	}
+	,getRow: function(y) {
+		return CellHelper.clamp(Math.floor((y - CellHelper.TOP_BORDER) / CellHelper.CELL_HEIGHT),0,Math.round((this.pixelHeight - CellHelper.TOP_BORDER) / CellHelper.CELL_HEIGHT));
+	}
+	,getCol: function(x) {
+		return CellHelper.clamp(Math.floor(x / CellHelper.CELL_WIDTH),0,this.getMaxCellCol());
+	}
+	,__class__: CellHelper
+};
 var Church = function() {
 	openfl_display_Sprite.call(this);
 	this.addChild(new openfl_display_Bitmap(openfl_utils_Assets.getBitmapData("Assets/building2.png",false)));
@@ -4354,27 +4560,42 @@ Church.__super__ = openfl_display_Sprite;
 Church.prototype = $extend(openfl_display_Sprite.prototype,{
 	__class__: Church
 });
-var DampeState = $hxEnums["DampeState"] = { __ename__ : "DampeState", __constructs__ : ["Standing","Walking","Digging"]
+var DampeState = $hxEnums["DampeState"] = { __ename__ : "DampeState", __constructs__ : ["Standing","Walking","Digging","Placing"]
 	,Standing: ($_=function(frame) { return {_hx_index:0,frame:frame,__enum__:"DampeState",toString:$estr}; },$_.__params__ = ["frame"],$_)
 	,Walking: ($_=function(frame) { return {_hx_index:1,frame:frame,__enum__:"DampeState",toString:$estr}; },$_.__params__ = ["frame"],$_)
 	,Digging: ($_=function(frame) { return {_hx_index:2,frame:frame,__enum__:"DampeState",toString:$estr}; },$_.__params__ = ["frame"],$_)
+	,Placing: ($_=function(frame) { return {_hx_index:3,frame:frame,__enum__:"DampeState",toString:$estr}; },$_.__params__ = ["frame"],$_)
 };
-var Dampe = function(digCallback,movementValidationCallback) {
+var KeyState = $hxEnums["KeyState"] = { __ename__ : "KeyState", __constructs__ : ["PRESSED","RELEASED_BUT_UNPROCESSED","RELEASED"]
+	,PRESSED: {_hx_index:0,__enum__:"KeyState",toString:$estr}
+	,RELEASED_BUT_UNPROCESSED: {_hx_index:1,__enum__:"KeyState",toString:$estr}
+	,RELEASED: {_hx_index:2,__enum__:"KeyState",toString:$estr}
+};
+var Dampe = function(digCallback,placeGraveValidationCallback,placeGraveCallback,movementValidationCallback,isGameActive) {
+	this.pressedKeys = new haxe_ds_IntMap();
+	this.skipFrame = false;
+	this.spookedCountdown = 0;
 	this.flip = false;
 	openfl_display_Sprite.call(this);
-	this.state = DampeState.Standing(0);
+	this.resetState();
 	this.spriteSheet = openfl_utils_Assets.getBitmapData("Assets/dampe_alt.png");
-	this.sprite = new openfl_display_Bitmap(new openfl_display_BitmapData(13,12,true,-1));
+	this.sprite = new openfl_display_Bitmap(new openfl_display_BitmapData(14,12,true,-1));
 	this.direction = new openfl_geom_Point(0,0);
 	this.digCallback = digCallback;
+	this.placeGraveCallback = placeGraveCallback;
+	this.placeGraveValidationCallback = placeGraveValidationCallback;
 	this.movementValidationCallback = movementValidationCallback;
+	this.isGameActive = isGameActive;
 	this.addChild(this.sprite);
 	this.updateSprite();
 };
 $hxClasses["Dampe"] = Dampe;
 Dampe.__name__ = "Dampe";
-Dampe.getLocalSpaceCollider = function() {
-	return new openfl_geom_Rectangle(6,11,3,1);
+Dampe.localSpaceMonsterCollider = function() {
+	return new openfl_geom_Rectangle(8,5,3,7);
+};
+Dampe.localSpaceMovementCollider = function() {
+	return new openfl_geom_Rectangle(8,11,3,1);
 };
 Dampe.__super__ = openfl_display_Sprite;
 Dampe.prototype = $extend(openfl_display_Sprite.prototype,{
@@ -4385,10 +4606,63 @@ Dampe.prototype = $extend(openfl_display_Sprite.prototype,{
 	,flip: null
 	,digCallback: null
 	,movementValidationCallback: null
+	,isGameActive: null
+	,placeGraveValidationCallback: null
+	,placeGraveCallback: null
+	,spookedCountdown: null
+	,skipFrame: null
+	,pressedKeys: null
+	,isFacingRight: function() {
+		return this.flip;
+	}
 	,init: function() {
-		this.stage.addEventListener("keyDown",$bind(this,this.onKeyDown));
+		var _gthis = this;
+		this.stage.addEventListener("keyDown",function(e) {
+			var v = KeyState.PRESSED;
+			_gthis.pressedKeys.h[e.keyCode] = v;
+		});
+		this.stage.addEventListener("keyUp",function(e1) {
+			var this1 = _gthis.pressedKeys;
+			var k = e1.keyCode;
+			var v1 = _gthis.isGameActive() && _gthis.isKeyPressed(e1.keyCode) ? KeyState.RELEASED_BUT_UNPROCESSED : KeyState.RELEASED;
+			this1.h[k] = v1;
+		});
+	}
+	,parentSpaceMovementCollider: function() {
+		var rect = Dampe.localSpaceMovementCollider();
+		rect.offset(this.get_x(),this.get_y());
+		return rect;
+	}
+	,spook: function() {
+		if(this.spookedCountdown <= 0) {
+			haxe_Log.trace("spooky!",{ fileName : "Source/Dampe.hx", lineNumber : 105, className : "Dampe", methodName : "spook"});
+			this.spookedCountdown = Dampe.SPOOK_DURATION_FRAMES;
+			this.skipFrame = true;
+			return true;
+		}
+		return false;
+	}
+	,unSpook: function() {
+		this.skipFrame = false;
+		this.spookedCountdown = 0;
+	}
+	,resetState: function() {
+		this.state = DampeState.Standing(0);
 	}
 	,onFrame: function() {
+		this.handleInput();
+		if(this.spookedCountdown > 0) {
+			this.spookedCountdown--;
+		}
+		if(this.spookedCountdown > 0) {
+			this.sprite.set_alpha(this.skipFrame ? 0 : 1);
+			this.skipFrame = !this.skipFrame;
+			if(!this.skipFrame) {
+				return;
+			}
+		} else {
+			this.sprite.set_alpha(1);
+		}
 		var _g = this.state;
 		switch(_g._hx_index) {
 		case 0:
@@ -4397,7 +4671,9 @@ Dampe.prototype = $extend(openfl_display_Sprite.prototype,{
 			break;
 		case 1:
 			var frame1 = _g.frame;
-			if(frame1 % 2 == 1) {
+			if(this.direction.x == 0 && this.direction.y == 0) {
+				this.state = DampeState.Standing((frame1 + 1) % 4);
+			} else {
 				if(this.movementValidationCallback(new openfl_geom_Point(this.get_x() + this.direction.x,this.get_y() + this.direction.y))) {
 					var _g1 = this;
 					_g1.set_x(_g1.get_x() + this.direction.x);
@@ -4406,8 +4682,6 @@ Dampe.prototype = $extend(openfl_display_Sprite.prototype,{
 				}
 				this.direction.x = 0;
 				this.direction.y = 0;
-				this.state = DampeState.Standing((frame1 + 1) % 4);
-			} else {
 				this.state = DampeState.Walking((frame1 + 1) % 4);
 			}
 			break;
@@ -4417,64 +4691,107 @@ Dampe.prototype = $extend(openfl_display_Sprite.prototype,{
 				this.state = DampeState.Standing(0);
 			} else {
 				if(frame2 == 2) {
-					if(this.flip) {
-						this.digCallback(new openfl_geom_Point(14,11));
-					} else {
-						this.digCallback(new openfl_geom_Point(2,11));
-					}
+					var actionPoint = this.flip ? new openfl_geom_Point(13,10) : new openfl_geom_Point(3,10);
+					this.digCallback(actionPoint);
 				}
 				this.state = DampeState.Digging((frame2 + 1) % 7);
+			}
+			break;
+		case 3:
+			var frame3 = _g.frame;
+			var actionPoint1 = this.flip ? new openfl_geom_Point(14,8) : new openfl_geom_Point(2,8);
+			if(frame3 == 0) {
+				haxe_Log.trace(this.placeGraveValidationCallback(actionPoint1),{ fileName : "Source/Dampe.hx", lineNumber : 171, className : "Dampe", methodName : "onFrame"});
+				if(!this.placeGraveValidationCallback(actionPoint1)) {
+					this.state = DampeState.Standing(0);
+				} else {
+					this.state = DampeState.Placing(1);
+				}
+			} else if(frame3 == 2) {
+				this.placeGraveCallback(actionPoint1);
+				this.state = DampeState.Placing((frame3 + 1) % 4);
+			} else if(frame3 == 3) {
+				this.state = DampeState.Standing(0);
+			} else {
+				this.state = DampeState.Placing((frame3 + 1) % 4);
 			}
 			break;
 		}
 		this.updateSprite();
 	}
-	,onKeyDown: function(e) {
+	,isKeyPressed: function(keyCode) {
+		var x = this.pressedKeys.h[keyCode];
+		if(x != null) {
+			if(x != KeyState.PRESSED) {
+				return x == KeyState.RELEASED_BUT_UNPROCESSED;
+			} else {
+				return true;
+			}
+		} else {
+			return false;
+		}
+	}
+	,handleInput: function() {
 		var _g = this.state;
 		switch(_g._hx_index) {
 		case 0:
 			var frame = _g.frame;
-			if(e.keyCode == 87) {
+			if(this.isKeyPressed(87)) {
 				this.direction.y = -1;
 				this.state = DampeState.Walking(Math.floor(frame / 2) * 2);
-			} else if(e.keyCode == 83) {
+			} else if(this.isKeyPressed(83)) {
 				this.direction.y = 1;
 				this.state = DampeState.Walking(Math.floor(frame / 2) * 2);
-			} else if(e.keyCode == 65) {
+			} else if(this.isKeyPressed(65)) {
 				this.direction.x = -1;
 				this.flip = false;
 				this.state = DampeState.Walking(Math.floor(frame / 2) * 2);
-			} else if(e.keyCode == 68) {
+			} else if(this.isKeyPressed(68)) {
 				this.direction.x = 1;
 				this.flip = true;
 				this.state = DampeState.Walking(Math.floor(frame / 2) * 2);
-			} else if(e.keyCode == 69) {
+			} else if(this.isKeyPressed(69)) {
 				this.state = DampeState.Digging(0);
+			} else if(this.isKeyPressed(81)) {
+				this.state = DampeState.Placing(0);
 			}
 			break;
 		case 1:
 			var frame1 = _g.frame;
-			if(e.keyCode == 87) {
+			if(this.isKeyPressed(87)) {
 				this.direction.y = -1;
 				this.direction.x = 0;
-			} else if(e.keyCode == 83) {
+			} else if(this.isKeyPressed(83)) {
 				this.direction.y = 1;
 				this.direction.x = 0;
-			} else if(e.keyCode == 65) {
+			} else if(this.isKeyPressed(65)) {
 				this.direction.x = -1;
 				this.direction.y = 0;
 				this.flip = false;
-			} else if(e.keyCode == 68) {
+			} else if(this.isKeyPressed(68)) {
 				this.direction.x = 1;
 				this.direction.y = 0;
 				this.flip = true;
-			} else if(e.keyCode == 69) {
+			} else if(this.isKeyPressed(69)) {
 				this.state = DampeState.Digging(0);
+			} else if(this.isKeyPressed(81)) {
+				this.state = DampeState.Placing(0);
 			}
 			break;
 		case 2:
 			var frame2 = _g.frame;
-			return;
+			break;
+		case 3:
+			var frame3 = _g.frame;
+			break;
+		}
+		var key = this.pressedKeys.keys();
+		while(key.hasNext()) {
+			var key1 = key.next();
+			if(this.pressedKeys.h[key1] == KeyState.RELEASED_BUT_UNPROCESSED) {
+				var v = KeyState.RELEASED;
+				this.pressedKeys.h[key1] = v;
+			}
 		}
 	}
 	,updateSprite: function() {
@@ -4493,12 +4810,20 @@ Dampe.prototype = $extend(openfl_display_Sprite.prototype,{
 			var frame2 = _g.frame;
 			index = frame2 + 3;
 			break;
+		case 3:
+			var frame3 = _g.frame;
+			if(frame3 == 0 || frame3 == 3) {
+				index = 4;
+			} else {
+				index = 10 + frame3 - 1;
+			}
+			break;
 		}
-		var x = index % 3 * 13;
+		var x = index % 3 * 14;
 		var y = Math.floor(index / 3) * 12;
-		this.sprite.get_bitmapData().copyPixels(this.spriteSheet,new openfl_geom_Rectangle(x,y,x + 13,y + this.get_height()),new openfl_geom_Point(0,0));
+		this.sprite.get_bitmapData().copyPixels(this.spriteSheet,new openfl_geom_Rectangle(x,y,x + 14,y + this.get_height()),new openfl_geom_Point(0,0));
 		if(this.flip) {
-			this.sprite.set_x(15);
+			this.sprite.set_x(18);
 			this.sprite.set_scaleX(-1);
 		} else {
 			this.sprite.set_scaleX(1);
@@ -4507,22 +4832,34 @@ Dampe.prototype = $extend(openfl_display_Sprite.prototype,{
 	}
 	,__class__: Dampe
 });
-var DayTransition = function(day,graves,money) {
+var DayTransition = function(day,graves,crosses,money) {
 	openfl_display_Sprite.call(this);
 	this.sprite = new openfl_display_Bitmap(openfl_utils_Assets.getBitmapData("Assets/transition.png"));
 	this.addChild(this.sprite);
 	this.daySprite = new DisplayNumber(day,2);
 	this.daySprite.set_x(30);
-	this.daySprite.set_y(6);
+	this.daySprite.set_y(2);
+	this.day = day;
 	this.addChild(this.daySprite);
-	this.gravesSprite = new DisplayNumber(graves,2);
-	this.gravesSprite.set_x(68);
-	this.gravesSprite.set_y(8);
+	this.gravesSprite = new DisplayNumber(graves,1);
+	this.gravesSprite.set_x(20);
+	this.gravesSprite.set_y(21);
+	this.graves = graves;
 	this.addChild(this.gravesSprite);
-	this.moneySprite = new DisplayNumber(money,4);
-	this.moneySprite.set_x(14);
-	this.moneySprite.set_y(27);
+	this.crossSprite = new DisplayNumber(crosses,1);
+	this.crossSprite.set_x(20);
+	this.crossSprite.set_y(35);
+	this.crosses = crosses;
+	this.addChild(this.crossSprite);
+	this.moneySprite = new DisplayNumber(money,3);
+	this.moneySprite.set_x(44);
+	this.moneySprite.set_y(25);
+	this.money = money;
 	this.addChild(this.moneySprite);
+	this.totalDays = new DisplayNumber(13,2);
+	this.totalDays.set_x(64);
+	this.totalDays.set_y(2);
+	this.addChild(this.totalDays);
 };
 $hxClasses["DayTransition"] = DayTransition;
 DayTransition.__name__ = "DayTransition";
@@ -4531,17 +4868,22 @@ DayTransition.prototype = $extend(openfl_display_Sprite.prototype,{
 	sprite: null
 	,day: null
 	,graves: null
+	,crosses: null
 	,money: null
 	,daySprite: null
 	,gravesSprite: null
+	,crossSprite: null
 	,moneySprite: null
-	,update: function(day,graves,money) {
-		haxe_Log.trace(day,{ fileName : "Source/DayTransition.hx", lineNumber : 22, className : "DayTransition", methodName : "update", customParams : [graves,money]});
+	,totalDays: null
+	,update: function(day,graves,crosses,money) {
+		haxe_Log.trace(day,{ fileName : "Source/DayTransition.hx", lineNumber : 26, className : "DayTransition", methodName : "update", customParams : [graves,money]});
 		this.day = day;
 		this.graves = graves;
 		this.money = money;
+		this.crosses = crosses;
 		this.daySprite.update(day);
 		this.gravesSprite.update(graves);
+		this.crossSprite.update(crosses);
 		this.moneySprite.update(money);
 	}
 	,onFrame: function() {
@@ -4586,6 +4928,25 @@ DisplayNumber.prototype = $extend(openfl_display_Sprite.prototype,{
 		}
 	}
 	,__class__: DisplayNumber
+});
+var EPrompt = function() {
+	openfl_display_Sprite.call(this);
+	this.spriteSheet = openfl_utils_Assets.getBitmapData("Assets/press_e.png");
+	this.sprite = new openfl_display_Bitmap(new openfl_display_BitmapData(25,7,true,-1));
+	this.addChild(this.sprite);
+	this.onFrame(0);
+};
+$hxClasses["EPrompt"] = EPrompt;
+EPrompt.__name__ = "EPrompt";
+EPrompt.__super__ = openfl_display_Sprite;
+EPrompt.prototype = $extend(openfl_display_Sprite.prototype,{
+	spriteSheet: null
+	,sprite: null
+	,onFrame: function(frame) {
+		var index = frame % 2;
+		this.sprite.get_bitmapData().copyPixels(this.spriteSheet,new openfl_geom_Rectangle(0,index * 7,25,7),new openfl_geom_Point(0,0));
+	}
+	,__class__: EPrompt
 });
 var EReg = function(r,opt) {
 	this.r = new RegExp(r,opt.split("u").join(""));
@@ -4677,49 +5038,258 @@ EReg.prototype = {
 	}
 	,__class__: EReg
 };
-var Game = function() {
+var EndOfDayData = function(gravesFilled,ghostsReleased) {
+	this.gravesFilled = gravesFilled;
+	this.ghostsReleased = ghostsReleased;
+};
+$hxClasses["EndOfDayData"] = EndOfDayData;
+EndOfDayData.__name__ = "EndOfDayData";
+EndOfDayData.prototype = {
+	gravesFilled: null
+	,ghostsReleased: null
+	,__class__: EndOfDayData
+};
+var ActionType = $hxEnums["ActionType"] = { __ename__ : "ActionType", __constructs__ : ["DIG","PLACE"]
+	,DIG: {_hx_index:0,__enum__:"ActionType",toString:$estr}
+	,PLACE: {_hx_index:1,__enum__:"ActionType",toString:$estr}
+};
+var Game = function(isGameActive) {
+	this.ghostsReleasedToday = 0;
+	this.dayFrames = 1;
 	var _gthis = this;
 	openfl_display_Sprite.call(this);
 	this.get_graphics().beginFill(4411965);
 	this.get_graphics().drawRect(0,0,84,48);
+	this.audioManager = new AudioManager();
 	Grave.lazyInit();
+	Tombstone.lazyInit();
 	Ghost.initTextures();
 	var church = new Church();
 	church.set_x(0);
-	church.set_y(3);
+	church.set_y(6);
 	this.addChild(church);
 	this.set_shader(new NokiaShader());
+	var getActionScore = function(action,objectAtLocation) {
+		if(objectAtLocation == null) {
+			return 1;
+		}
+		switch(action._hx_index) {
+		case 0:
+			switch(js_Boot.getClass(objectAtLocation)) {
+			case Church:
+				return 0;
+			case Grave:
+				var g = js_Boot.__cast(objectAtLocation , Grave);
+				switch(g.getState()._hx_index) {
+				case 0:case 1:
+					return 1;
+				case 2:
+					return 0;
+				case 3:case 4:
+					return -1;
+				}
+				break;
+			case Tombstone:
+				switch((js_Boot.__cast(objectAtLocation , Tombstone)).getState()._hx_index) {
+				case 0:
+					return -1;
+				case 1:
+					return 0;
+				case 2:
+					return 1;
+				}
+				break;
+			default:
+			}
+			break;
+		case 1:
+			switch(js_Boot.getClass(objectAtLocation)) {
+			case Church:case Grave:
+				return 0;
+			case Tombstone:
+				if((js_Boot.__cast(objectAtLocation , Tombstone)).getState() == TombstoneState.DAMAGED) {
+					return 1;
+				} else {
+					return 0;
+				}
+				break;
+			default:
+			}
+			break;
+		}
+		return 0;
+	};
+	var getDampeActionCell = function(intendedPos,action1) {
+		var bestCell = null;
+		var bestScore = -2;
+		var dampeRect = _gthis.dampe.parentSpaceMovementCollider().clone();
+		dampeRect.inflate(0,30);
+		var _g = 0;
+		while(_g < 4) {
+			var searchDist = _g++;
+			var searchDir = -1;
+			var cell = Game.cellHelper.getClosestCell(_gthis.dampe.get_x() + intendedPos.x,_gthis.dampe.get_y() + intendedPos.y + searchDist * searchDir);
+			var potentialCellRect = CellHelper.CELL_SIZE();
+			var p = Game.cellHelper.getCellTopLeft(cell);
+			potentialCellRect.offset(p.x,p.y);
+			if(potentialCellRect.intersects(dampeRect)) {
+				cell.col += _gthis.dampe.isFacingRight() ? 1 : -1;
+				if(cell.col < 0 || cell.col > Game.cellHelper.getMaxCellCol()) {
+					haxe_Log.trace("Attempted to perform action offscreen",{ fileName : "Source/Game.hx", lineNumber : 134, className : "Game", methodName : "new"});
+					return null;
+				}
+			}
+			var score = _gthis.getObjectAtCell(cell);
+			var score1 = getActionScore(action1,score);
+			if(score1 > bestScore) {
+				bestScore = score1;
+				bestCell = cell;
+			}
+			if(bestScore == 1) {
+				return bestCell;
+			}
+			var searchDir1 = 1;
+			var cell1 = Game.cellHelper.getClosestCell(_gthis.dampe.get_x() + intendedPos.x,_gthis.dampe.get_y() + intendedPos.y + searchDist * searchDir1);
+			var potentialCellRect1 = CellHelper.CELL_SIZE();
+			var p1 = Game.cellHelper.getCellTopLeft(cell1);
+			potentialCellRect1.offset(p1.x,p1.y);
+			if(potentialCellRect1.intersects(dampeRect)) {
+				cell1.col += _gthis.dampe.isFacingRight() ? 1 : -1;
+				if(cell1.col < 0 || cell1.col > Game.cellHelper.getMaxCellCol()) {
+					haxe_Log.trace("Attempted to perform action offscreen",{ fileName : "Source/Game.hx", lineNumber : 134, className : "Game", methodName : "new"});
+					return null;
+				}
+			}
+			var score2 = _gthis.getObjectAtCell(cell1);
+			var score3 = getActionScore(action1,score2);
+			if(score3 > bestScore) {
+				bestScore = score3;
+				bestCell = cell1;
+			}
+			if(bestScore == 1) {
+				return bestCell;
+			}
+		}
+		return bestCell;
+	};
+	this.statusBar = new StatusBar(3);
+	this.addChild(this.statusBar);
 	this.dampe = new Dampe(function(point) {
-		haxe_Log.trace("digging at",{ fileName : "Source/Game.hx", lineNumber : 53, className : "Game", methodName : "new", customParams : [point]});
-		var worldPos = new openfl_geom_Point(_gthis.dampe.get_x() + point.x,_gthis.dampe.get_y() + point.y);
-		var existingGrave = _gthis.findGraveHoleIntersecting(worldPos);
-		if(existingGrave != null) {
-			switch(existingGrave.getState()._hx_index) {
-			case 0:
-				existingGrave.setState(GraveState.DIG_2);
+		haxe_Log.trace("digging at",{ fileName : "Source/Game.hx", lineNumber : 156, className : "Game", methodName : "new", customParams : [point]});
+		var digCell = getDampeActionCell(point,ActionType.DIG);
+		if(digCell == null) {
+			return;
+		}
+		var worldPos = Game.cellHelper.getCellCenter(digCell);
+		var existingObject = _gthis.getObjectAtCell(digCell);
+		if(existingObject != null) {
+			switch(js_Boot.getClass(existingObject)) {
+			case Grave:
+				var existingGrave = js_Boot.__cast(existingObject , Grave);
+				switch(existingGrave.getState()._hx_index) {
+				case 0:
+					existingGrave.setState(GraveState.DIG_2);
+					break;
+				case 1:
+					existingGrave.setState(GraveState.HOLE);
+					break;
+				case 2:
+					break;
+				case 3:case 4:
+					var t = _gthis.getGraveLinkedTombstone(existingGrave);
+					if(t != null) {
+						t.onDamage();
+					}
+					break;
+				}
 				break;
-			case 1:
-				existingGrave.setState(GraveState.FRESH);
-				break;
-			case 2:
-				break;
-			case 3:
+			case Tombstone:
+				var t1 = js_Boot.__cast(existingObject , Tombstone);
+				_gthis.digTombstone(t1);
 				break;
 			}
 		} else {
 			_gthis.createGraveAtPoint(worldPos);
 		}
-	},function(p) {
-		var dampeRect = Dampe.getLocalSpaceCollider().clone();
-		dampeRect.offset(p.x,p.y);
-		if(dampeRect.x < 0 || dampeRect.y < 5 || dampeRect.x + dampeRect.width > 84 || dampeRect.y + dampeRect.height > 48) {
+	},function(p2) {
+		if(_gthis.statusBar.tombStones <= 0) {
+			return false;
+		}
+		var cell2 = getDampeActionCell(p2,ActionType.PLACE);
+		if(cell2 == null) {
+			return false;
+		}
+		var existingChild = _gthis.getObjectAtCell(cell2);
+		if(existingChild == null) {
+			return true;
+		}
+		switch(js_Boot.getClass(existingChild)) {
+		case Church:
+			return false;
+		case Grave:
+			var g1 = js_Boot.__cast(existingChild , Grave);
+			return g1.getState() == GraveState.DIG_1;
+		case Tombstone:
+			return (js_Boot.__cast(existingChild , Tombstone)).getState() == TombstoneState.DAMAGED;
+		}
+		return true;
+	},function(p3) {
+		haxe_Log.trace("Placing at ",{ fileName : "Source/Game.hx", lineNumber : 209, className : "Game", methodName : "new", customParams : [p3]});
+		var cell3 = getDampeActionCell(p3,ActionType.PLACE);
+		if(cell3 == null) {
+			return;
+		}
+		var existingChild1 = _gthis.getObjectAtCell(cell3);
+		if(existingChild1 != null) {
+			if(js_Boot.getClass(existingChild1) == Tombstone) {
+				var t2 = js_Boot.__cast(existingChild1 , Tombstone);
+				if(t2.getState() == TombstoneState.DAMAGED) {
+					t2.setState(TombstoneState.NORMAL,t2.getLinkedGhost());
+				}
+				_gthis.statusBar.tombStones -= 1;
+				return;
+			} else {
+				_gthis.removeChild(existingChild1);
+			}
+		}
+		var cellOrigin = Game.cellHelper.getCellTopLeft(cell3);
+		var t3 = new Tombstone();
+		t3.set_x(cellOrigin.x);
+		t3.set_y(cellOrigin.y);
+		_gthis.addChild(t3);
+		_gthis.statusBar.tombStones -= 1;
+		_gthis.sortChildren();
+	},function(p4) {
+		return _gthis.isValidDampePosition(p4.x,p4.y);
+	},isGameActive);
+	this.addChild(this.dampe);
+	this.dampe.set_x(10);
+	this.dampe.set_y(10);
+	this.sortChildren();
+};
+$hxClasses["Game"] = Game;
+Game.__name__ = "Game";
+Game.__super__ = openfl_display_Sprite;
+Game.prototype = $extend(openfl_display_Sprite.prototype,{
+	dayFrames: null
+	,ghostsReleasedToday: null
+	,dampe: null
+	,audioManager: null
+	,statusBar: null
+	,init: function() {
+		this.dampe.init();
+	}
+	,isValidDampePosition: function(x,y) {
+		var dampeRect = Dampe.localSpaceMovementCollider().clone();
+		dampeRect.offset(x,y);
+		if(dampeRect.x < 0 || dampeRect.y < 11 || dampeRect.x + dampeRect.width > 84 || dampeRect.y + dampeRect.height > 48) {
 			return false;
 		}
 		var _g = 0;
-		var _g1 = _gthis.get_numChildren();
+		var _g1 = this.get_numChildren();
 		while(_g < _g1) {
 			var i = _g++;
-			var child = _gthis.getChildAt(i);
+			var child = this.getChildAt(i);
 			switch(js_Boot.getClass(child)) {
 			case Church:
 				var rect = Church.localCollider().clone();
@@ -4739,59 +5309,166 @@ var Game = function() {
 					}
 				}
 				break;
+			case Tombstone:
+				var tRect = Tombstone.localSpacePathingCollider();
+				tRect.offset(child.get_x(),child.get_y());
+				if(dampeRect.intersects(tRect)) {
+					return false;
+				}
+				break;
 			}
 		}
 		return true;
-	});
-	this.addChild(this.dampe);
-	this.dampe.set_x(10);
-	this.dampe.set_y(10);
-	var testGhost = new Ghost();
-	testGhost.set_x(60);
-	testGhost.set_y(20);
-	this.addChild(testGhost);
-	var music = openfl_utils_Assets.getSound("Assets/k2lu.mp3");
-	music.play(0,9999,new openfl_media_SoundTransform(0.6));
-	this.sortChildren();
-};
-$hxClasses["Game"] = Game;
-Game.__name__ = "Game";
-Game.__super__ = openfl_display_Sprite;
-Game.prototype = $extend(openfl_display_Sprite.prototype,{
-	dampe: null
-	,init: function() {
-		this.dampe.init();
 	}
-	,onFrame: function(frame) {
-		this.get_graphics().beginFill(4411965);
-		this.get_graphics().drawRect(84 - 84 * (frame / 200),0,84 * (frame / 200),2);
-		this.dampe.onFrame();
-		this.ghostsOnFrame();
-		this.sortChildren();
-	}
-	,onBeginDay: function() {
-		this.fillEmptyGraves();
-		this.get_graphics().beginFill(13103320);
-		this.get_graphics().drawRect(0,0,84,2);
-	}
-	,onDayEnd: function() {
-	}
-	,nGraves: function() {
-		var n = 0;
+	,resolveState: function() {
+		var dampeMonsterCollisionRect = Dampe.localSpaceMonsterCollider();
+		dampeMonsterCollisionRect.offset(this.dampe.get_x(),this.dampe.get_y());
+		var dampeMovementCollisionRect = Dampe.localSpaceMovementCollider();
+		dampeMovementCollisionRect.offset(this.dampe.get_x(),this.dampe.get_y());
 		var _g = 0;
 		var _g1 = this.get_numChildren();
 		while(_g < _g1) {
 			var i = _g++;
 			var child = this.getChildAt(i);
-			if(js_Boot.getClass(child) == Grave) {
-				var g = js_Boot.__cast(child , Grave);
-				haxe_Log.trace(g.getState(),{ fileName : "Source/Game.hx", lineNumber : 141, className : "Game", methodName : "nGraves"});
-				if(g.getState() == GraveState.FRESH) {
-					++n;
+			switch(js_Boot.getClass(child)) {
+			case Church:
+				var churchRect = Church.localCollider();
+				churchRect.offset(child.get_x(),child.get_y());
+				if(churchRect.intersects(dampeMonsterCollisionRect)) {
+					this.statusBar.tombStones = Math.round(Math.min(this.statusBar.tombStones + 1,3));
+				}
+				break;
+			case Ghost:
+				var ghostRect = Ghost.localSpaceCollider();
+				ghostRect.offset(child.get_x(),child.get_y());
+				if(ghostRect.intersects(dampeMonsterCollisionRect)) {
+					if(this.dampe.spook()) {
+						this.audioManager.playOhNo();
+					}
+				}
+				break;
+			case Grave:
+				var grave = js_Boot.__cast(child , Grave);
+				switch(grave.getState()._hx_index) {
+				case 0:case 1:case 2:
+					break;
+				case 3:case 4:
+					var graveRect = Grave.localSpaceGraveHoleRect();
+					graveRect.offset(child.get_x(),child.get_y());
+					if(graveRect.intersects(dampeMovementCollisionRect)) {
+						var t = this.getGraveLinkedTombstone(grave);
+						if(t != null) {
+							t.onDamage();
+						}
+					}
+					break;
+				}
+				break;
+			}
+		}
+		if(!this.isValidDampePosition(this.dampe.get_x(),this.dampe.get_y())) {
+			var _g2 = 1;
+			while(_g2 < 20) {
+				var dist = _g2++;
+				var resolved = false;
+				var _g21 = 0;
+				var _g3 = [-1,0,1];
+				while(_g21 < _g3.length) {
+					var x_dir = _g3[_g21];
+					++_g21;
+					var _g22 = 0;
+					var _g31 = [-1,0,1];
+					while(_g22 < _g31.length) {
+						var y_dir = _g31[_g22];
+						++_g22;
+						var dx = x_dir * dist;
+						var dy = y_dir * dist;
+						if(this.isValidDampePosition(this.dampe.get_x() + dx,this.dampe.get_y() + dy)) {
+							haxe_Log.trace("un-stuck dampe",{ fileName : "Source/Game.hx", lineNumber : 333, className : "Game", methodName : "resolveState"});
+							var _g23 = this.dampe;
+							_g23.set_x(_g23.get_x() + dx);
+							var _g24 = this.dampe;
+							_g24.set_y(_g24.get_y() + dy);
+							resolved = true;
+							break;
+						}
+					}
+					if(resolved) {
+						break;
+					}
+				}
+				if(resolved) {
+					break;
 				}
 			}
 		}
-		return n;
+	}
+	,onFrame: function(frame) {
+		this.dampe.onFrame();
+		this.ghostsOnFrame();
+		this.sortChildren();
+		this.resolveState();
+		this.statusBar.onFrame(1 - frame / this.dayFrames);
+	}
+	,digTombstone: function(t) {
+		switch(t.getState()._hx_index) {
+		case 0:case 1:
+			t.onDamage();
+			break;
+		case 2:
+			this.ghostsReleasedToday++;
+			this.removeChild(t.getLinkedGhost());
+			this.removeChild(t);
+			this.audioManager.playSuccess();
+			break;
+		}
+	}
+	,getObjectAtCell: function(cell) {
+		var _g = 0;
+		var _g1 = this.get_numChildren();
+		while(_g < _g1) {
+			var i = _g++;
+			var child = this.getChildAt(i);
+			var childCell = Game.cellHelper.getClosestCell(child.get_x(),child.get_y());
+			if(childCell.isSameAs(cell)) {
+				switch(js_Boot.getClass(child)) {
+				case Church:case Grave:case Tombstone:
+					return child;
+				}
+			}
+			if(js_Boot.getClass(child) == Church) {
+				if(new Cell(childCell.row,childCell.col + 1).isSameAs(cell) || new Cell(childCell.row + 1,childCell.col).isSameAs(cell) || new Cell(childCell.row + 1,childCell.col + 1).isSameAs(cell)) {
+					return child;
+				}
+			}
+		}
+		return null;
+	}
+	,getGraveLinkedTombstone: function(g) {
+		var gCell = Game.cellHelper.getClosestCell(g.get_x(),g.get_y());
+		if(gCell.row == 0) {
+			return null;
+		}
+		var aboveCell = new Cell(gCell.row - 1,gCell.col);
+		var above = this.getObjectAtCell(aboveCell);
+		if(above == null || js_Boot.getClass(above) != Tombstone) {
+			return null;
+		}
+		return js_Boot.__cast(above , Tombstone);
+	}
+	,onBeginDay: function(dayFrames) {
+		this.resolveState();
+		this.ghostsReleasedToday = 0;
+		this.dayFrames = dayFrames;
+		this.statusBar.tombStones = 3;
+		this.dampe.set_x(0);
+		this.dampe.set_y(14);
+		this.dampe.unSpook();
+		this.dampe.resetState();
+	}
+	,onDayEnd: function() {
+		var filledGraves = this.progressGraves();
+		return new EndOfDayData(filledGraves,this.ghostsReleasedToday);
 	}
 	,ghostsOnFrame: function() {
 		var _g = 0;
@@ -4805,15 +5482,19 @@ Game.prototype = $extend(openfl_display_Sprite.prototype,{
 		}
 	}
 	,sortChildren: function() {
-		var tombstoneRect = Grave.localSpaceTombstoneRect();
-		var dampeRect = Dampe.getLocalSpaceCollider();
+		var tombstoneRect = Tombstone.localSpacePathingCollider();
+		var dampeRect = Dampe.localSpaceMovementCollider();
 		var getChildZ = function(child) {
 			switch(js_Boot.getClass(child)) {
 			case Dampe:
 				return child.get_y() + dampeRect.y + dampeRect.height;
 			case Ghost:
-				return 999;
+				return 999 + child.get_y();
 			case Grave:
+				return 0.0;
+			case StatusBar:
+				return 10000 + child.get_y();
+			case Tombstone:
 				return child.get_y() + tombstoneRect.y + tombstoneRect.height;
 			default:
 				return -1;
@@ -4846,6 +5527,15 @@ Game.prototype = $extend(openfl_display_Sprite.prototype,{
 			this.setChildIndex(sortArray[i1],i1);
 		}
 	}
+	,createGhostAtPoint: function(x,y) {
+		var collider = Ghost.localSpaceCollider();
+		var ghost = new Ghost();
+		ghost.set_x(x + collider.x - collider.width / 2);
+		ghost.set_y(y + collider.y - collider.height / 2);
+		this.addChild(ghost);
+		this.sortChildren();
+		return ghost;
+	}
 	,createGraveAtPoint: function(point) {
 		var grave = new Grave();
 		grave.set_x(point.x);
@@ -4862,14 +5552,17 @@ Game.prototype = $extend(openfl_display_Sprite.prototype,{
 			var child = this.getChildAt(i);
 			if(js_Boot.getClass(child) == Grave) {
 				var g = js_Boot.__cast(child , Grave);
-				if(g.intersectsHole(point)) {
+				if(g.hitTestPoint(point.x,point.y)) {
 					return g;
 				}
 			}
 		}
+		haxe_Log.trace("no grave found at ",{ fileName : "Source/Game.hx", lineNumber : 507, className : "Game", methodName : "findGraveHoleIntersecting", customParams : [point]});
 		return null;
 	}
-	,fillEmptyGraves: function() {
+	,progressGraves: function() {
+		var gravesFilled = 0;
+		var gravesToRemove = [];
 		var _g = 0;
 		var _g1 = this.get_numChildren();
 		while(_g < _g1) {
@@ -4877,13 +5570,62 @@ Game.prototype = $extend(openfl_display_Sprite.prototype,{
 			var child = this.getChildAt(i);
 			if(js_Boot.getClass(child) == Grave) {
 				var g = js_Boot.__cast(child , Grave);
-				if(g.getState() == GraveState.FRESH) {
-					g.setState(GraveState.FULL);
+				var t = this.getGraveLinkedTombstone(g);
+				if(t != null && t.getState() == TombstoneState.NORMAL) {
+					switch(g.getState()._hx_index) {
+					case 0:case 1:
+						break;
+					case 2:
+						++gravesFilled;
+						g.setState(GraveState.SPAWN_PROGRESS_1);
+						break;
+					case 3:
+						g.setState(GraveState.SPAWN_PROGRESS_2);
+						break;
+					case 4:
+						var ghost = this.createGhostAtPoint(g.get_x(),g.get_y());
+						t.setState(TombstoneState.SANCTIFIED,ghost);
+						gravesToRemove.push(g);
+						break;
+					}
 				}
 			}
 		}
+		var _g2 = 0;
+		while(_g2 < gravesToRemove.length) {
+			var g1 = gravesToRemove[_g2];
+			++_g2;
+			this.removeChild(g1);
+		}
+		return gravesFilled;
 	}
 	,__class__: Game
+});
+var GameEnd = function(won) {
+	openfl_display_Sprite.call(this);
+	this.won = won;
+	this.winSpriteData = openfl_utils_Assets.getBitmapData("Assets/sunset.png");
+	this.loseSpriteData = openfl_utils_Assets.getBitmapData("Assets/overdue.png");
+	this.displayBitmap = new openfl_display_Bitmap(new openfl_display_BitmapData(84,48,true));
+	this.addChild(this.displayBitmap);
+};
+$hxClasses["GameEnd"] = GameEnd;
+GameEnd.__name__ = "GameEnd";
+GameEnd.__super__ = openfl_display_Sprite;
+GameEnd.prototype = $extend(openfl_display_Sprite.prototype,{
+	winSpriteData: null
+	,loseSpriteData: null
+	,displayBitmap: null
+	,won: null
+	,onFrame: function(frame) {
+		haxe_Log.trace(this.won,{ fileName : "Source/GameEnd.hx", lineNumber : 30, className : "GameEnd", methodName : "onFrame"});
+		if(this.won) {
+			this.displayBitmap.get_bitmapData().copyPixels(this.winSpriteData,new openfl_geom_Rectangle(0,48 * (Math.floor(frame / 4) % 2),84,48),new openfl_geom_Point(0,0));
+		} else {
+			this.displayBitmap.get_bitmapData().copyPixels(this.loseSpriteData,new openfl_geom_Rectangle(0,0,84,48),new openfl_geom_Point(0,0));
+		}
+	}
+	,__class__: GameEnd
 });
 var Ghost = function() {
 	this.flipHorz = false;
@@ -4894,6 +5636,9 @@ var Ghost = function() {
 };
 $hxClasses["Ghost"] = Ghost;
 Ghost.__name__ = "Ghost";
+Ghost.localSpaceCollider = function() {
+	return new openfl_geom_Rectangle(0,0,Ghost.WIDTH + 1,Ghost.HEIGHT + 1);
+};
 Ghost.initTextures = function() {
 	if(Ghost.TEXTURE_1 != null) {
 		return;
@@ -4935,25 +5680,14 @@ Ghost.prototype = $extend(openfl_display_Sprite.prototype,{
 	}
 	,__class__: Ghost
 });
-var GraveState = $hxEnums["GraveState"] = { __ename__ : "GraveState", __constructs__ : ["DIG_1","DIG_2","FRESH","FULL"]
+var GraveState = $hxEnums["GraveState"] = { __ename__ : "GraveState", __constructs__ : ["DIG_1","DIG_2","HOLE","SPAWN_PROGRESS_1","SPAWN_PROGRESS_2"]
 	,DIG_1: {_hx_index:0,__enum__:"GraveState",toString:$estr}
 	,DIG_2: {_hx_index:1,__enum__:"GraveState",toString:$estr}
-	,FRESH: {_hx_index:2,__enum__:"GraveState",toString:$estr}
-	,FULL: {_hx_index:3,__enum__:"GraveState",toString:$estr}
-};
-var GraveStateBitmapData = function(tombstone,grave) {
-	this.tombstone = tombstone;
-	this.grave = grave;
-};
-$hxClasses["GraveStateBitmapData"] = GraveStateBitmapData;
-GraveStateBitmapData.__name__ = "GraveStateBitmapData";
-GraveStateBitmapData.prototype = {
-	tombstone: null
-	,grave: null
-	,__class__: GraveStateBitmapData
+	,HOLE: {_hx_index:2,__enum__:"GraveState",toString:$estr}
+	,SPAWN_PROGRESS_1: {_hx_index:3,__enum__:"GraveState",toString:$estr}
+	,SPAWN_PROGRESS_2: {_hx_index:4,__enum__:"GraveState",toString:$estr}
 };
 var Grave = function() {
-	this.holeIntersectionSprite = null;
 	this.state = GraveState.DIG_1;
 	openfl_display_Sprite.call(this);
 	Grave.lazyInit();
@@ -4973,71 +5707,51 @@ Grave.lazyInit = function() {
 	var spriteSheet = openfl_utils_Assets.getBitmapData("Assets/graves.png",false);
 	Grave.STATE_SPRITES = new haxe_ds_EnumValueMap();
 	var this1 = Grave.STATE_SPRITES;
-	var v = new GraveStateBitmapData(null,Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(47,7,Grave.GRAVE_WIDTH,Grave.GRAVE_HEIGHT)));
+	var v = Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(47,7,Grave.GRAVE_WIDTH,Grave.GRAVE_HEIGHT));
 	this1.set(GraveState.DIG_1,v);
 	var this2 = Grave.STATE_SPRITES;
-	var v1 = new GraveStateBitmapData(null,Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(40,7,Grave.GRAVE_WIDTH,Grave.GRAVE_HEIGHT)));
+	var v1 = Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(40,7,Grave.GRAVE_WIDTH,Grave.GRAVE_HEIGHT));
 	this2.set(GraveState.DIG_2,v1);
 	var this3 = Grave.STATE_SPRITES;
-	var v2 = new GraveStateBitmapData(null,Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(32,7,Grave.GRAVE_WIDTH,Grave.GRAVE_HEIGHT)));
-	this3.set(GraveState.FRESH,v2);
+	var v2 = Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(32,7,Grave.GRAVE_WIDTH,Grave.GRAVE_HEIGHT));
+	this3.set(GraveState.HOLE,v2);
 	var this4 = Grave.STATE_SPRITES;
-	var v3 = new GraveStateBitmapData(Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(0,0,Grave.TOMBSTONE_WIDTH,Grave.TOMBSTONE_HEIGHT)),Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(0,7,Grave.GRAVE_WIDTH,Grave.GRAVE_HEIGHT)));
-	this4.set(GraveState.FULL,v3);
+	var v3 = Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(24,7,Grave.GRAVE_WIDTH,Grave.GRAVE_HEIGHT));
+	this4.set(GraveState.SPAWN_PROGRESS_1,v3);
+	var this5 = Grave.STATE_SPRITES;
+	var v4 = Grave.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(24,14,Grave.GRAVE_WIDTH,Grave.GRAVE_HEIGHT));
+	this5.set(GraveState.SPAWN_PROGRESS_2,v4);
 };
-Grave.localSpaceTombstoneRect = function() {
-	var tombstoneNonCollidingHeight = 6;
-	return new openfl_geom_Rectangle(-Grave.TOMBSTONE_WIDTH / 2 - 1,-Grave.GRAVE_HEIGHT - Grave.TOMBSTONE_HEIGHT / 2 - 1 + tombstoneNonCollidingHeight,Grave.TOMBSTONE_WIDTH + 1,Grave.TOMBSTONE_HEIGHT + 1 - tombstoneNonCollidingHeight);
+Grave.localSpaceGraveHoleRect = function() {
+	return new openfl_geom_Rectangle(-js_Boot.__cast(Grave.GRAVE_WIDTH , Float) / 2,-js_Boot.__cast(Grave.GRAVE_HEIGHT , Float) / 2,Grave.GRAVE_WIDTH + 1,Grave.GRAVE_HEIGHT + 1);
 };
 Grave.__super__ = openfl_display_Sprite;
 Grave.prototype = $extend(openfl_display_Sprite.prototype,{
 	state: null
-	,holeIntersectionSprite: null
 	,getState: function() {
 		return this.state;
 	}
 	,localSpacePathingCollisionRect: function() {
-		var holeRect = new openfl_geom_Rectangle(-Grave.GRAVE_WIDTH / 2 - 1,-Grave.GRAVE_HEIGHT / 2 - 1,Grave.GRAVE_WIDTH + 1,Grave.GRAVE_HEIGHT + 1);
 		switch(this.state._hx_index) {
-		case 0:
-			return holeRect;
-		case 1:
-			return holeRect;
-		case 2:
-			return holeRect;
-		case 3:
-			return Grave.localSpaceTombstoneRect();
+		case 1:case 2:
+			return Grave.localSpaceGraveHoleRect();
+		case 0:case 3:case 4:
+			return null;
 		}
 	}
 	,setState: function(state) {
+		if(state == this.state) {
+			return;
+		}
 		this.state = state;
 		this.updateRenderSprite();
 	}
-	,intersectsHole: function(point) {
-		if(this.holeIntersectionSprite == null) {
-			return false;
-		} else {
-			return this.holeIntersectionSprite.hitTestPoint(point.x,point.y);
-		}
-	}
 	,updateRenderSprite: function() {
 		this.removeChildren();
-		var data = Grave.STATE_SPRITES.get(this.state);
-		if(data.tombstone != null) {
-			var g = new openfl_display_Bitmap(data.tombstone);
-			g.set_x(-Grave.TOMBSTONE_WIDTH / 2 - 1);
-			g.set_y(-Grave.GRAVE_HEIGHT - Grave.TOMBSTONE_HEIGHT / 2 - 1);
-			this.addChild(g);
-		}
-		if(data.grave != null) {
-			var g1 = new openfl_display_Bitmap(data.grave);
-			g1.set_x(-Grave.GRAVE_WIDTH / 2 - 1);
-			g1.set_y(-Grave.GRAVE_HEIGHT / 2 - 1);
-			this.holeIntersectionSprite = g1;
-			this.addChild(g1);
-		} else {
-			this.holeIntersectionSprite = null;
-		}
+		var g = new openfl_display_Bitmap(Grave.STATE_SPRITES.get(this.state));
+		g.set_x(-js_Boot.__cast(Grave.GRAVE_WIDTH , Float) / 2);
+		g.set_y(-js_Boot.__cast(Grave.GRAVE_HEIGHT , Float) / 2);
+		this.addChild(g);
 	}
 	,__class__: Grave
 });
@@ -5112,11 +5826,12 @@ Lambda.array = function(it) {
 	}
 	return a;
 };
-var State = $hxEnums["State"] = { __ename__ : "State", __constructs__ : ["Title","InGame","DayInfo","Transition"]
+var State = $hxEnums["State"] = { __ename__ : "State", __constructs__ : ["Title","InGame","DayInfo","GameOver","Transition"]
 	,Title: ($_=function(frame) { return {_hx_index:0,frame:frame,__enum__:"State",toString:$estr}; },$_.__params__ = ["frame"],$_)
 	,InGame: ($_=function(frame) { return {_hx_index:1,frame:frame,__enum__:"State",toString:$estr}; },$_.__params__ = ["frame"],$_)
 	,DayInfo: ($_=function(frame) { return {_hx_index:2,frame:frame,__enum__:"State",toString:$estr}; },$_.__params__ = ["frame"],$_)
-	,Transition: ($_=function(frame,current,next) { return {_hx_index:3,frame:frame,current:current,next:next,__enum__:"State",toString:$estr}; },$_.__params__ = ["frame","current","next"],$_)
+	,GameOver: ($_=function(frame) { return {_hx_index:3,frame:frame,__enum__:"State",toString:$estr}; },$_.__params__ = ["frame"],$_)
+	,Transition: ($_=function(frame,current,next) { return {_hx_index:4,frame:frame,current:current,next:next,__enum__:"State",toString:$estr}; },$_.__params__ = ["frame","current","next"],$_)
 };
 var ManifestResources = function() { };
 $hxClasses["ManifestResources"] = ManifestResources;
@@ -5132,7 +5847,7 @@ ManifestResources.init = function(config) {
 		ManifestResources.rootPath = "./";
 	}
 	var bundle;
-	var data = "{\"name\":null,\"assets\":\"aoy4:sizei922897y4:typey5:MUSICy2:idy17:Assets%2Fk2lu.mp3y9:pathGroupaR4hy7:preloadtgoy4:pathy18:Assets%2Fdampe.pngR0i381R1y5:IMAGER3R8R6tgoR7y22:Assets%2Fdampe_alt.pngR0i368R1R9R3R10R6tgoR7y19:Assets%2Fgraves.pngR0i10624R1R9R3R11R6tgoR7y18:Assets%2Fghost.pngR0i117R1R9R3R12R6tgoR7y20:Assets%2Fnumbers.pngR0i247R1R9R3R13R6tgoR7y23:Assets%2Ftransition.pngR0i354R1R9R3R14R6tgoR7y22:Assets%2Fbuilding2.pngR0i113R1R9R3R15R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
+	var data = "{\"name\":null,\"assets\":\"aoy4:sizei922897y4:typey5:MUSICy2:idy17:Assets%2Fk2lu.mp3y9:pathGroupaR4hy7:preloadtgoR0i78411R1R2R3y18:Assets%2Foh_no.mp3R5aR7hR6tgoR0i58976R1R2R3y21:Assets%2Fmg_alert.mp3R5aR8hR6tgoR0i39541R1R2R3y20:Assets%2Fsuccess.mp3R5aR9hR6tgoy4:pathy18:Assets%2Fdampe.pngR0i381R1y5:IMAGER3R11R6tgoR10y19:Assets%2Fcross2.pngR0i103R1R12R3R13R6tgoR10y22:Assets%2Fdampe_alt.pngR0i426R1R12R3R14R6tgoR10y19:Assets%2Fgraves.pngR0i364R1R12R3R15R6tgoR10y18:Assets%2Fghost.pngR0i117R1R12R3R16R6tgoR10y20:Assets%2Fnumbers.pngR0i247R1R12R3R17R6tgoR10y23:Assets%2Ftransition.pngR0i447R1R12R3R18R6tgoR10y22:Assets%2Fbuilding2.pngR0i135R1R12R3R19R6tgoR10y18:Assets%2Ftitle.pngR0i416R1R12R3R20R6tgoR10y20:Assets%2Fpress_e.pngR0i181R1R12R3R21R6tgoR10y23:Assets%2Fsmall_tomb.pngR0i85R1R12R3R22R6tgoR10y19:Assets%2Fsunset.pngR0i1134R1R12R3R23R6tgoR10y20:Assets%2Foverdue.pngR0i351R1R12R3R24R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
 	var manifest = lime_utils_AssetManifest.parse(data,ManifestResources.rootPath);
 	var library = lime_utils_AssetLibrary.fromManifest(manifest);
 	lime_utils_Assets.registerLibrary("default",library);
@@ -5914,7 +6629,7 @@ openfl_display_DisplayObjectShader.prototype = $extend(openfl_display_Shader.pro
 });
 var NokiaShader = function() {
 	if(this.__glFragmentSource == null) {
-		this.__glFragmentSource = "\n\tvarying float openfl_Alphav;\n\t\tvarying vec4 openfl_ColorMultiplierv;\n\t\tvarying vec4 openfl_ColorOffsetv;\n\t\tvarying vec2 openfl_TextureCoordv;\n\n\t\tuniform bool openfl_HasColorTransform;\n\t\tuniform sampler2D openfl_Texture;\n\t\tuniform vec2 openfl_TextureSize;\n\n\tfloat luma(vec4 color) {\n\t\treturn dot(color.rgb, vec3(0.299, 0.587, 0.114));\n\t}\n\tvoid main(void) {\n\t\tvec4 color = texture2D (openfl_Texture, openfl_TextureCoordv);\n\n\t\tif (color.a == 0.0) {\n\n\t\t\tgl_FragColor = vec4 (0.0, 0.0, 0.0, 0.0);\n\n\t\t} else if (openfl_HasColorTransform) {\n\n\t\t\tcolor = vec4 (color.rgb / color.a, color.a);\n\n\t\t\tmat4 colorMultiplier = mat4 (0);\n\t\t\tcolorMultiplier[0][0] = openfl_ColorMultiplierv.x;\n\t\t\tcolorMultiplier[1][1] = openfl_ColorMultiplierv.y;\n\t\t\tcolorMultiplier[2][2] = openfl_ColorMultiplierv.z;\n\t\t\tcolorMultiplier[3][3] = 1.0; // openfl_ColorMultiplierv.w;\n\n\t\t\tcolor = clamp (openfl_ColorOffsetv + (color * colorMultiplier), 0.0, 1.0);\n\n\t\t\tif (color.a > 0.0) {\n\n\t\t\t\tgl_FragColor = vec4 (color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);\n\n\t\t\t} else {\n\n\t\t\t\tgl_FragColor = vec4 (0.0, 0.0, 0.0, 0.0);\n\n\t\t\t}\n\n\t\t} else {\n\n\t\t\tgl_FragColor = color * openfl_Alphav;\n\n\t\t}\n\n\t\t vec4 color2 = texture2D (openfl_Texture, openfl_TextureCoordv);\n\t\t // If alpha is small, just remove alpha and let BG through.\n\t\t if (color2.a < .45) {\n\t\t\t gl_FragColor = vec4(0, 0 , 0 ,0);\n\t\t } else if (luma(color2) < .3) {\n\t\t\t gl_FragColor = vec4(0.263, 0.322, 0.239, 1.0) ;\n\t\t } else {\n\t\t\t gl_FragColor = vec4(0.78, 0.941, 0.847, 1.0);\n\t\t }\n\t}\n\t";
+		this.__glFragmentSource = "\n  varying float openfl_Alphav;\n\t\tvarying vec4 openfl_ColorMultiplierv;\n\t\tvarying vec4 openfl_ColorOffsetv;\n\t\tvarying vec2 openfl_TextureCoordv;\n\n\t\tuniform bool openfl_HasColorTransform;\n\t\tuniform sampler2D openfl_Texture;\n\t\tuniform vec2 openfl_TextureSize;\n\n  float luma(vec4 color) {\n    return dot(color.rgb, vec3(0.299, 0.587, 0.114));\n  }\n  void main(void) {\n    vec4 color = texture2D (openfl_Texture, openfl_TextureCoordv);\n\n\t\tif (color.a == 0.0) {\n\n\t\t\tgl_FragColor = vec4 (0.0, 0.0, 0.0, 0.0);\n\n\t\t} else if (openfl_HasColorTransform) {\n\n\t\t\tcolor = vec4 (color.rgb / color.a, color.a);\n\n\t\t\tmat4 colorMultiplier = mat4 (0);\n\t\t\tcolorMultiplier[0][0] = openfl_ColorMultiplierv.x;\n\t\t\tcolorMultiplier[1][1] = openfl_ColorMultiplierv.y;\n\t\t\tcolorMultiplier[2][2] = openfl_ColorMultiplierv.z;\n\t\t\tcolorMultiplier[3][3] = 1.0; // openfl_ColorMultiplierv.w;\n\n\t\t\tcolor = clamp (openfl_ColorOffsetv + (color * colorMultiplier), 0.0, 1.0);\n\n\t\t\tif (color.a > 0.0) {\n\n\t\t\t\tgl_FragColor = vec4 (color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);\n\n\t\t\t} else {\n\n\t\t\t\tgl_FragColor = vec4 (0.0, 0.0, 0.0, 0.0);\n\n\t\t\t}\n\n\t\t} else {\n\n\t\t\tgl_FragColor = color * openfl_Alphav;\n\n\t\t}\n\n     vec4 color2 = texture2D (openfl_Texture, openfl_TextureCoordv);\n     // If alpha is small, just remove alpha and let BG through.\n     if (color2.a < .45) {\n       gl_FragColor = vec4(0, 0 , 0 ,0);\n     } else if (luma(color2) < .3) {\n       gl_FragColor = vec4(0.263, 0.322, 0.239, 1.0) ;\n     } else {\n       gl_FragColor = vec4(0.78, 0.941, 0.847, 1.0);\n     }\n  }\n  ";
 	}
 	if(this.__glVertexSource == null) {
 		this.__glVertexSource = "attribute float openfl_Alpha;\n\t\tattribute vec4 openfl_ColorMultiplier;\n\t\tattribute vec4 openfl_ColorOffset;\n\t\tattribute vec4 openfl_Position;\n\t\tattribute vec2 openfl_TextureCoord;\n\n\t\tvarying float openfl_Alphav;\n\t\tvarying vec4 openfl_ColorMultiplierv;\n\t\tvarying vec4 openfl_ColorOffsetv;\n\t\tvarying vec2 openfl_TextureCoordv;\n\n\t\tuniform mat4 openfl_Matrix;\n\t\tuniform bool openfl_HasColorTransform;\n\t\tuniform vec2 openfl_TextureSize;\n\n\n\t\tvoid main(void) {\n\n\t\t\topenfl_Alphav = openfl_Alpha;\n\t\topenfl_TextureCoordv = openfl_TextureCoord;\n\n\t\tif (openfl_HasColorTransform) {\n\n\t\t\topenfl_ColorMultiplierv = openfl_ColorMultiplier;\n\t\t\topenfl_ColorOffsetv = openfl_ColorOffset / 255.0;\n\n\t\t}\n\n\t\tgl_Position = openfl_Matrix * openfl_Position;\n\n\n\t\t}";
@@ -5931,7 +6646,7 @@ NokiaShader.prototype = $extend(openfl_display_DisplayObjectShader.prototype,{
 });
 var CloudShader = function() {
 	if(this.__glFragmentSource == null) {
-		this.__glFragmentSource = "\n\tvarying float openfl_Alphav;\n\t\tvarying vec4 openfl_ColorMultiplierv;\n\t\tvarying vec4 openfl_ColorOffsetv;\n\t\tvarying vec2 openfl_TextureCoordv;\n\n\t\tuniform bool openfl_HasColorTransform;\n\t\tuniform sampler2D openfl_Texture;\n\t\tuniform vec2 openfl_TextureSize;\n\n\tuniform float cutoff;\n\tuniform vec2 lightMul;\n\tfloat luma(vec4 color) {\n\t\treturn dot(color.rgb, vec3(0.299, 0.587, 0.114));\n\t}\n\n\tint neighbourEmpty(vec2 pos) {\n\t\tvec2 onePixel = lightMul / openfl_TextureSize;\n\t\tvec4 c = texture2D (openfl_Texture, openfl_TextureCoordv + (onePixel*pos));\n\t\tif (luma(c) > cutoff){return 1;}\n\t\telse {return 0;};\n\t}\n\n\tvoid main(void) {\n\t\tvec4 color = texture2D (openfl_Texture, openfl_TextureCoordv);\n\n\t\tif (color.a == 0.0) {\n\n\t\t\tgl_FragColor = vec4 (0.0, 0.0, 0.0, 0.0);\n\n\t\t} else if (openfl_HasColorTransform) {\n\n\t\t\tcolor = vec4 (color.rgb / color.a, color.a);\n\n\t\t\tmat4 colorMultiplier = mat4 (0);\n\t\t\tcolorMultiplier[0][0] = openfl_ColorMultiplierv.x;\n\t\t\tcolorMultiplier[1][1] = openfl_ColorMultiplierv.y;\n\t\t\tcolorMultiplier[2][2] = openfl_ColorMultiplierv.z;\n\t\t\tcolorMultiplier[3][3] = 1.0; // openfl_ColorMultiplierv.w;\n\n\t\t\tcolor = clamp (openfl_ColorOffsetv + (color * colorMultiplier), 0.0, 1.0);\n\n\t\t\tif (color.a > 0.0) {\n\n\t\t\t\tgl_FragColor = vec4 (color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);\n\n\t\t\t} else {\n\n\t\t\t\tgl_FragColor = vec4 (0.0, 0.0, 0.0, 0.0);\n\n\t\t\t}\n\n\t\t} else {\n\n\t\t\tgl_FragColor = color * openfl_Alphav;\n\n\t\t}\n\n\t\t vec4 pixel = texture2D (openfl_Texture, openfl_TextureCoordv);\n\t\t int emptyNeighbours = neighbourEmpty(vec2(-1, -1)) \n\t\t\t + neighbourEmpty(vec2(0, -1))\n\t\t\t + neighbourEmpty(vec2(1, -1))\n\t\t\t + neighbourEmpty(vec2(-1, 0))\n\t\t\t + neighbourEmpty(vec2(-1, 1))\n\t\t\t + neighbourEmpty(vec2(1, 0))\n\t\t\t + neighbourEmpty(vec2(0, 1))\n\t\t\t + neighbourEmpty(vec2(1, 1));\n\t\t\n\t\t\tif ( luma(pixel) < cutoff) {\n\t\t\t if (emptyNeighbours > 2) {\n\t\t\t\t gl_FragColor = vec4(0.78, 0.941, 0.847, 1);\n\t\t\t } else {\n\t\t\t\t gl_FragColor = vec4(0.263, 0.322, 0.239, 1);\n\t\t\t }\n\t\t } else {\n\t\t\tgl_FragColor = vec4(0, 0, 0, 0);\n\t\t }\n\t}\n\t";
+		this.__glFragmentSource = "\n  varying float openfl_Alphav;\n\t\tvarying vec4 openfl_ColorMultiplierv;\n\t\tvarying vec4 openfl_ColorOffsetv;\n\t\tvarying vec2 openfl_TextureCoordv;\n\n\t\tuniform bool openfl_HasColorTransform;\n\t\tuniform sampler2D openfl_Texture;\n\t\tuniform vec2 openfl_TextureSize;\n\n  uniform float cutoff;\n  uniform vec2 lightMul;\n  float luma(vec4 color) {\n    return dot(color.rgb, vec3(0.299, 0.587, 0.114));\n  }\n\n  int neighbourEmpty(vec2 pos) {\n    vec2 onePixel = lightMul / openfl_TextureSize;\n    vec4 c = texture2D (openfl_Texture, openfl_TextureCoordv + (onePixel*pos));\n    if (luma(c) > cutoff){return 1;}\n    else {return 0;};\n  }\n\n  void main(void) {\n    vec4 color = texture2D (openfl_Texture, openfl_TextureCoordv);\n\n\t\tif (color.a == 0.0) {\n\n\t\t\tgl_FragColor = vec4 (0.0, 0.0, 0.0, 0.0);\n\n\t\t} else if (openfl_HasColorTransform) {\n\n\t\t\tcolor = vec4 (color.rgb / color.a, color.a);\n\n\t\t\tmat4 colorMultiplier = mat4 (0);\n\t\t\tcolorMultiplier[0][0] = openfl_ColorMultiplierv.x;\n\t\t\tcolorMultiplier[1][1] = openfl_ColorMultiplierv.y;\n\t\t\tcolorMultiplier[2][2] = openfl_ColorMultiplierv.z;\n\t\t\tcolorMultiplier[3][3] = 1.0; // openfl_ColorMultiplierv.w;\n\n\t\t\tcolor = clamp (openfl_ColorOffsetv + (color * colorMultiplier), 0.0, 1.0);\n\n\t\t\tif (color.a > 0.0) {\n\n\t\t\t\tgl_FragColor = vec4 (color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);\n\n\t\t\t} else {\n\n\t\t\t\tgl_FragColor = vec4 (0.0, 0.0, 0.0, 0.0);\n\n\t\t\t}\n\n\t\t} else {\n\n\t\t\tgl_FragColor = color * openfl_Alphav;\n\n\t\t}\n\n     vec4 pixel = texture2D (openfl_Texture, openfl_TextureCoordv);\n     int emptyNeighbours = neighbourEmpty(vec2(-1, -1)) \n       + neighbourEmpty(vec2(0, -1))\n       + neighbourEmpty(vec2(1, -1))\n       + neighbourEmpty(vec2(-1, 0))\n       + neighbourEmpty(vec2(-1, 1))\n       + neighbourEmpty(vec2(1, 0))\n       + neighbourEmpty(vec2(0, 1))\n       + neighbourEmpty(vec2(1, 1));\n    \n      if ( luma(pixel) < cutoff) {\n       if (emptyNeighbours > 2) {\n         gl_FragColor = vec4(0.78, 0.941, 0.847, 1);\n       } else {\n         gl_FragColor = vec4(0.263, 0.322, 0.239, 1);\n       }\n     } else {\n      gl_FragColor = vec4(0, 0, 0, 0);\n     }\n  }\n  ";
 	}
 	if(this.__glVertexSource == null) {
 		this.__glVertexSource = "attribute float openfl_Alpha;\n\t\tattribute vec4 openfl_ColorMultiplier;\n\t\tattribute vec4 openfl_ColorOffset;\n\t\tattribute vec4 openfl_Position;\n\t\tattribute vec2 openfl_TextureCoord;\n\n\t\tvarying float openfl_Alphav;\n\t\tvarying vec4 openfl_ColorMultiplierv;\n\t\tvarying vec4 openfl_ColorOffsetv;\n\t\tvarying vec2 openfl_TextureCoordv;\n\n\t\tuniform mat4 openfl_Matrix;\n\t\tuniform bool openfl_HasColorTransform;\n\t\tuniform vec2 openfl_TextureSize;\n\n\n\t\tvoid main(void) {\n\n\t\t\topenfl_Alphav = openfl_Alpha;\n\t\topenfl_TextureCoordv = openfl_TextureCoord;\n\n\t\tif (openfl_HasColorTransform) {\n\n\t\t\topenfl_ColorMultiplierv = openfl_ColorMultiplier;\n\t\t\topenfl_ColorOffsetv = openfl_ColorOffset / 255.0;\n\n\t\t}\n\n\t\tgl_Position = openfl_Matrix * openfl_Position;\n\n\n\t\t}";
@@ -5955,14 +6670,14 @@ var Sky = function() {
 	this.get_graphics().drawRect(0,0,84,48);
 	var star = new openfl_display_Sprite();
 	var _g = 0;
-	var _g1 = 30;
+	var _g1 = 0;
 	while(_g < _g1) {
 		var i = _g++;
 		star.get_graphics().beginFill(13103320);
-		var row = i / 10;
-		var col = i % 10;
-		var x = Math.round(col * 84 / 10 + Math.random() * 84 / 10);
-		var y = Math.round(row * 48 / 3 + Math.random() * 48 / 3);
+		var row = i / 0;
+		var col = i % 0;
+		var x = Math.round(col * 84 / 0 + Math.random() * 84 / 0);
+		var y = Math.round(row * 48 / 0 + Math.random() * 48 / 0);
 		star.get_graphics().drawRect(x,y,1,1);
 	}
 	this.addChild(star);
@@ -5973,23 +6688,60 @@ var Sky = function() {
 	moon.get_graphics().drawCircle(10,13,9.5);
 	this.addChild(moon);
 	this.cloudNoise = new openfl_display_BitmapData(84,48,true,13103320);
-	this.cloudNoise.perlinNoise(0,1,2,1,false,false,8,true);
+	this.cloudNoise.perlinNoise(0,-10,2,1,false,false,8,true);
 	var cloud = new openfl_display_Sprite();
 	cloud.addChild(new openfl_display_Bitmap(this.cloudNoise));
 	cloud.set_shader(new CloudShader());
-	cloud.get_shader().get_data().cutoff.value = [0.5];
-	cloud.get_shader().get_data().lightMul.value = [2,3];
+	cloud.get_shader().get_data().cutoff.value = [0.35];
+	cloud.get_shader().get_data().lightMul.value = [1,2];
 	this.addChild(cloud);
+	var titleData = openfl_utils_Assets.getBitmapData("Assets/title.png");
+	var title = new openfl_display_Bitmap(titleData);
+	title.set_x(27);
+	title.set_y(10);
+	this.addChild(title);
 };
 $hxClasses["Sky"] = Sky;
 Sky.__name__ = "Sky";
 Sky.__super__ = openfl_display_Sprite;
 Sky.prototype = $extend(openfl_display_Sprite.prototype,{
 	cloudNoise: null
+	,eprompt: null
 	,onFrame: function(frame) {
-		this.cloudNoise.perlinNoise(frame,1,2,1,false,false,8,true);
+		this.cloudNoise.perlinNoise(Math.floor(frame / 2),-10,2,1,false,false,8,true);
+		if(frame > 15) {
+			this.eprompt = new EPrompt();
+			this.eprompt.set_x(58);
+			this.eprompt.set_y(40);
+			this.addChild(this.eprompt);
+			this.eprompt.onFrame(1);
+		}
 	}
 	,__class__: Sky
+});
+var StatusBar = function(tombStones) {
+	openfl_display_Sprite.call(this);
+	this.tombStones = tombStones;
+	this.tombSprite = openfl_utils_Assets.getBitmapData("Assets/small_tomb.png");
+	this.onFrame(1);
+};
+$hxClasses["StatusBar"] = StatusBar;
+StatusBar.__name__ = "StatusBar";
+StatusBar.__super__ = openfl_display_Sprite;
+StatusBar.prototype = $extend(openfl_display_Sprite.prototype,{
+	tombSprite: null
+	,tombStones: null
+	,onFrame: function(timeLeft) {
+		this.get_graphics().beginFill(13103320);
+		this.get_graphics().drawRect(0,0,84,6);
+		if(this.tombStones > 0) {
+			this.get_graphics().beginBitmapFill(this.tombSprite);
+			this.get_graphics().drawRect(0,0,6 * this.tombStones,6);
+		}
+		this.get_graphics().beginFill(4411965);
+		this.get_graphics().drawRect(42.,2.,41. * timeLeft,2);
+	}
+	,__class__: StatusBar
 });
 var Std = function() { };
 $hxClasses["Std"] = Std;
@@ -6152,6 +6904,134 @@ StringTools.hex = function(n,digits) {
 	}
 	return s;
 };
+var TombstoneState = $hxEnums["TombstoneState"] = { __ename__ : "TombstoneState", __constructs__ : ["NORMAL","DAMAGED","SANCTIFIED"]
+	,NORMAL: {_hx_index:0,__enum__:"TombstoneState",toString:$estr}
+	,DAMAGED: {_hx_index:1,__enum__:"TombstoneState",toString:$estr}
+	,SANCTIFIED: {_hx_index:2,__enum__:"TombstoneState",toString:$estr}
+};
+var Tombstone = function() {
+	this.ghost = null;
+	this.state = TombstoneState.NORMAL;
+	openfl_display_Sprite.call(this);
+	Tombstone.lazyInit();
+	this.updateRenderSprite();
+};
+$hxClasses["Tombstone"] = Tombstone;
+Tombstone.__name__ = "Tombstone";
+Tombstone.bitmapDataFromRect = function(source,rect) {
+	var t = new openfl_display_BitmapData(js_Boot.__cast(rect.width , Int),js_Boot.__cast(rect.height , Int),true);
+	t.copyPixels(source,rect,new openfl_geom_Point(0,0));
+	return t;
+};
+Tombstone.lazyInit = function() {
+	if(Tombstone.STATE_SPRITES != null) {
+		return;
+	}
+	var spriteSheet = openfl_utils_Assets.getBitmapData("Assets/graves.png",false);
+	Tombstone.STATE_SPRITES = new haxe_ds_EnumValueMap();
+	var this1 = Tombstone.STATE_SPRITES;
+	var v = Tombstone.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(24,0,Tombstone.TOMBSTONE_WIDTH,Tombstone.TOMBSTONE_HEIGHT));
+	this1.set(TombstoneState.NORMAL,v);
+	var this2 = Tombstone.STATE_SPRITES;
+	var v1 = Tombstone.bitmapDataFromRect(spriteSheet,new openfl_geom_Rectangle(40,0,Tombstone.TOMBSTONE_WIDTH,Tombstone.TOMBSTONE_HEIGHT));
+	this2.set(TombstoneState.DAMAGED,v1);
+	var this3 = Tombstone.STATE_SPRITES;
+	var v2 = openfl_utils_Assets.getBitmapData("Assets/cross2.png",false);
+	this3.set(TombstoneState.SANCTIFIED,v2);
+};
+Tombstone.localSpacePathingCollider = function() {
+	var tombstoneCollidingHeight = 1;
+	return new openfl_geom_Rectangle(0,Tombstone.TOMBSTONE_HEIGHT - tombstoneCollidingHeight,Tombstone.TOMBSTONE_WIDTH + 1,tombstoneCollidingHeight + 1);
+};
+Tombstone.__super__ = openfl_display_Sprite;
+Tombstone.prototype = $extend(openfl_display_Sprite.prototype,{
+	state: null
+	,ghost: null
+	,onDamage: function() {
+		switch(this.state._hx_index) {
+		case 0:
+			this.setState(TombstoneState.DAMAGED,this.ghost);
+			break;
+		case 1:case 2:
+			break;
+		}
+	}
+	,getState: function() {
+		return this.state;
+	}
+	,setState: function(state,ghost) {
+		this.ghost = ghost;
+		if(state == this.state) {
+			return;
+		}
+		this.state = state;
+		this.updateRenderSprite();
+	}
+	,getLinkedGhost: function() {
+		return this.ghost;
+	}
+	,updateRenderSprite: function() {
+		this.removeChildren();
+		var g = new openfl_display_Bitmap(Tombstone.STATE_SPRITES.get(this.state));
+		g.set_x(0);
+		g.set_y(this.state == TombstoneState.SANCTIFIED ? Tombstone.TOMBSTONE_HEIGHT - Tombstone.SANCTIFIED_HEIGHT : 0);
+		this.addChild(g);
+	}
+	,__class__: Tombstone
+});
+var Transition = function(color) {
+	openfl_display_Sprite.call(this);
+	this.color = color;
+	this.get_graphics().beginFill(0,0);
+	this.get_graphics().drawRect(0,0,84,48);
+};
+$hxClasses["Transition"] = Transition;
+Transition.__name__ = "Transition";
+Transition.__super__ = openfl_display_Sprite;
+Transition.prototype = $extend(openfl_display_Sprite.prototype,{
+	color: null
+	,onFrame: function(frame) {
+		if(frame == 0) {
+			this.get_graphics().clear();
+		}
+		if(frame < 6.) {
+			this.get_graphics().beginFill(this.color,1);
+		} else {
+			this.get_graphics().beginFill(0,0);
+			frame -= 6;
+		}
+		if(frame < 3) {
+			var _g = 0;
+			var _g1 = 48;
+			while(_g < _g1) {
+				var y = _g++;
+				var _g2 = 0;
+				var _g11 = 84;
+				while(_g2 < _g11) {
+					var x = _g2++;
+					if(x % 2 == 0 && y % 2 == 0) {
+						this.get_graphics().drawRect(x,y,1,1);
+					}
+				}
+			}
+		} else {
+			var _g3 = 0;
+			var _g12 = 48;
+			while(_g3 < _g12) {
+				var y1 = _g3++;
+				var _g4 = 0;
+				var _g13 = 84;
+				while(_g4 < _g13) {
+					var x1 = _g4++;
+					if(x1 % 2 == 1 && y1 % 2 == 1) {
+						this.get_graphics().drawRect(x1,y1,1,1);
+					}
+				}
+			}
+		}
+	}
+	,__class__: Transition
+});
 var ValueType = $hxEnums["ValueType"] = { __ename__ : "ValueType", __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"]
 	,TNull: {_hx_index:0,__enum__:"ValueType",toString:$estr}
 	,TInt: {_hx_index:1,__enum__:"ValueType",toString:$estr}
@@ -25375,7 +26255,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 249279;
+	this.version = 415226;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -74059,28 +74939,33 @@ openfl_display_DisplayObject.__tempStack = new lime_utils_ObjectPool(function() 
 });
 Main.WhiteColor = 13103320;
 Main.BlackColor = 4411965;
-Main.Width = 84;
-Main.Height = 48;
-Main.DayFrames = 200;
-Church.WIDTH = 11;
-Church.HEIGHT = 12;
-Dampe.Width = 13;
+Main.DayLengths = [80,60,60,50,50,40,40,40,40,30,30,30,20];
+Main.FrameTime = 200;
+CellHelper.TOP_BORDER = 6;
+CellHelper.CELL_HEIGHT = 7;
+CellHelper.CELL_WIDTH = 7;
+Church.WIDTH = 14;
+Church.HEIGHT = 14;
+Dampe.Width = 14;
 Dampe.Height = 12;
+Dampe.SPOOK_DURATION_FRAMES = 40;
 DayTransition.Width = 84;
 DayTransition.Height = 48;
 DisplayNumber.Width = 6;
 DisplayNumber.Height = 11;
+EPrompt.Width = 25;
+EPrompt.Height = 7;
 Game.WhiteColor = 13103320;
 Game.BlackColor = 4411965;
 Game.Width = 84;
 Game.Height = 48;
-Game.DayFrames = 200;
+Game.cellHelper = new CellHelper(84,48);
+GameEnd.Width = 84;
+GameEnd.Height = 48;
 Ghost.WIDTH = 7;
 Ghost.HEIGHT = 7;
 Ghost.FRAMES_PER_ANIM = 4;
 Ghost.FRAMES_PER_MOVE = Ghost.FRAMES_PER_ANIM * 2;
-Grave.TOMBSTONE_HEIGHT = 7;
-Grave.TOMBSTONE_WIDTH = 7;
 Grave.GRAVE_HEIGHT = 7;
 Grave.GRAVE_WIDTH = 7;
 openfl_display_Shader.__meta__ = { fields : { glProgram : { SuppressWarnings : ["checkstyle:Dynamic"]}}};
@@ -74088,8 +74973,18 @@ Sky.WhiteColor = 13103320;
 Sky.BlackColor = 4411965;
 Sky.Width = 84;
 Sky.Height = 48;
-Sky.StarRows = 10;
-Sky.StarCols = 3;
+Sky.StarRows = 0;
+Sky.StarCols = 0;
+StatusBar.Width = 84;
+StatusBar.Height = 6;
+StatusBar.WhiteColor = 13103320;
+StatusBar.BlackColor = 4411965;
+Tombstone.TOMBSTONE_HEIGHT = 7;
+Tombstone.TOMBSTONE_WIDTH = 7;
+Tombstone.SANCTIFIED_HEIGHT = 9;
+Transition.Width = 84;
+Transition.Height = 48;
+Transition.Length = 12;
 haxe_Serializer.USE_CACHE = false;
 haxe_Serializer.USE_ENUM_INDEX = false;
 haxe_Serializer.BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:";
