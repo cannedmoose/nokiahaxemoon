@@ -302,10 +302,18 @@ class Game extends Sprite {
   private function getObjectAtCell(cell:Cell):DisplayObject {
     for (i in 0...numChildren) {
       var child = getChildAt(i);
-      if (cellHelper.getClosestCell(child.x, child.y).isSameAs(cell)) {
+      var childCell = cellHelper.getClosestCell(child.x, child.y);
+      if (childCell.isSameAs(cell)) {
         switch Type.getClass(child) {
           case Grave|Tombstone|Church:
             return child;
+        }
+      }
+      if (Type.getClass(child) == Church) {
+        if (new Cell(childCell.row, childCell.col + 1).isSameAs(cell) ||
+            new Cell(childCell.row + 1, childCell.col).isSameAs(cell) ||
+            new Cell(childCell.row + 1, childCell.col + 1).isSameAs(cell)) {
+          return child;
         }
       }
     }
