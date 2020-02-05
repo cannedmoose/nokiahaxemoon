@@ -297,6 +297,8 @@ class Game extends Sprite {
     dampeMonsterCollisionRect.offset(dampe.x, dampe.y);
     var dampeMovementCollisionRect = Dampe.localSpaceMovementCollider();
     dampeMovementCollisionRect.offset(dampe.x, dampe.y);
+    var dampeChurchCollisionRect = Dampe.localSpaceChurchCollider();
+    dampeChurchCollisionRect.offset(dampe.x, dampe.y);
     for (i in 0...numChildren) {
       var child = getChildAt(i);
       switch Type.getClass(child) {
@@ -326,7 +328,7 @@ class Game extends Sprite {
         case Church:
           var churchRect = Church.localCollider();
           churchRect.offset(child.x, child.y);
-          if (churchRect.intersects(dampeMonsterCollisionRect)) {
+          if (churchRect.intersects(dampeChurchCollisionRect)) {
             this.statusBar.tombStones = Math.round(Math.min(this.statusBar.tombStones + 1, 3));
           }
       }

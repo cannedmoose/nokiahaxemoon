@@ -49,7 +49,7 @@ class Dampe extends Sprite {
   var isGameActive:Void->Bool;
   var placeGraveValidationCallback:Point->Bool;
   var placeGraveCallback:Point->Void;
-  var  movementListener:(dx:Float, dy:Float)->Void;
+  var movementListener:(dx:Float, dy:Float) -> Void;
 
   var spookedCountdown = 0;
   var skipFrame = false;
@@ -57,8 +57,7 @@ class Dampe extends Sprite {
   var pressedKeys:Map<Int, KeyState> = new Map();
 
   public function new(digCallback:Point->Void, placeGraveValidationCallback:Point->Bool, placeGraveCallback:Point->Void,
-      movementValidationCallback:Point->Bool, isGameActive:Void->Bool,
-      movementListener:(dx:Float, dy:Float)->Void) {
+      movementValidationCallback:Point->Bool, isGameActive:Void->Bool, movementListener:(dx:Float, dy:Float) -> Void) {
     super();
 
     this.resetState();
@@ -95,6 +94,10 @@ class Dampe extends Sprite {
 
   public static function localSpaceMovementCollider():Rectangle {
     return new Rectangle(8, 11, 3, 1);
+  }
+
+  public static function localSpaceChurchCollider():Rectangle {
+    return new Rectangle(7, 5, 3, 7);
   }
 
   public function parentSpaceMovementCollider():Rectangle {
@@ -190,7 +193,7 @@ class Dampe extends Sprite {
     this.updateSprite();
   }
 
-  private function isKeyPressed(keyCode:Int): Bool {
+  private function isKeyPressed(keyCode:Int):Bool {
     var x:Null<KeyState> = pressedKeys.get(keyCode);
     return x != null && (x == PRESSED || x == RELEASED_BUT_UNPROCESSED);
   }
@@ -238,7 +241,7 @@ class Dampe extends Sprite {
           this.state = Placing(0);
         }
       case Digging(frame):
-        // No-op
+      // No-op
       case Placing(frame):
         // No-op
     }
