@@ -49,6 +49,7 @@ class Dampe extends Sprite {
   var isGameActive:Void->Bool;
   var placeGraveValidationCallback:Point->Bool;
   var placeGraveCallback:Point->Void;
+  var  movementListener:(dx:Float, dy:Float)->Void;
 
   var spookedCountdown = 0;
   var skipFrame = false;
@@ -56,7 +57,8 @@ class Dampe extends Sprite {
   var pressedKeys:Map<Int, KeyState> = new Map();
 
   public function new(digCallback:Point->Void, placeGraveValidationCallback:Point->Bool, placeGraveCallback:Point->Void,
-      movementValidationCallback:Point->Bool, isGameActive:Void->Bool) {
+      movementValidationCallback:Point->Bool, isGameActive:Void->Bool,
+      movementListener:(dx:Float, dy:Float)->Void) {
     super();
 
     this.resetState();
@@ -69,6 +71,7 @@ class Dampe extends Sprite {
     this.placeGraveValidationCallback = placeGraveValidationCallback;
     this.movementValidationCallback = movementValidationCallback;
     this.isGameActive = isGameActive;
+    this.movementListener = movementListener;
     addChild(this.sprite);
     this.updateSprite();
   }
@@ -148,6 +151,7 @@ class Dampe extends Sprite {
           if (movementValidationCallback(new Point(this.x + direction.x, this.y + direction.y))) {
             this.x += this.direction.x;
             this.y += this.direction.y;
+            this.movementListener(direction.x, direction.y);
           }
           this.direction.x = 0;
           this.direction.y = 0;

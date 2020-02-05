@@ -46,6 +46,8 @@ class Game extends Sprite {
   var audioManager:AudioManager;
   var statusBar:StatusBar;
 
+  var cachedActionRow:Map<ActionType, Int> = new Map();
+
   public function init() {
     this.dampe.init();
   };
@@ -72,7 +74,7 @@ class Game extends Sprite {
     this.shader = new NokiaShader();
 
     // Basically, -1 == bad, 0 == neutral, 1 == positive
-    var getActionScore = function(action:ActionType, objectAtLocation:DisplayObject):Int {
+    var getActionScore = function(action:ActionType, objectAtLocation:DisplayObject):Float {
       if (objectAtLocation == null)
         return 1;
       switch action {
@@ -119,7 +121,7 @@ class Game extends Sprite {
     // Returns null if offscreen
     var getDampeActionCell = function(intendedPos:Point, action:ActionType):Cell {
       var bestCell:Cell = null;
-      var bestScore = -2;
+      var bestScore:Float = -2;
       var dampeRect = dampe.parentSpaceMovementCollider().clone();
       dampeRect.inflate(0, 30);
       for (searchDist in 0...3) {
@@ -135,7 +137,10 @@ class Game extends Sprite {
               return null;
             }
           }
-          final score = getActionScore(action, getObjectAtCell(cell));
+          var score = getActionScore(action, getObjectAtCell(cell));
+          if (cachedActionRow.exists(action) && cell.row != cachedActionRow.get(action)) {
+            score -= 0.1;
+          }
           if (score > bestScore) {
             bestScore = score;
             bestCell = cell;
@@ -158,7 +163,6 @@ class Game extends Sprite {
       if (digCell == null) {
         return;
       }
-      var worldPos = cellHelper.getCellCenter(digCell);
       var existingObject = getObjectAtCell(digCell);
       if (existingObject != null) {
         switch Type.getClass(existingObject) {
@@ -181,8 +185,10 @@ class Game extends Sprite {
             digTombstone(t);
         }
       } else {
+        var worldPos = cellHelper.getCellCenter(digCell);
         createGraveAtPoint(worldPos);
       }
+      cachedActionRow[DIG] = digCell.row;
     }, function(p:Point):Bool {
       if (this.statusBar.tombStones <= 0) {
         return false;
@@ -211,6 +217,7 @@ class Game extends Sprite {
       if (cell == null) {
         return;
       }
+      cachedActionRow[PLACE] = cell.row;
       var existingChild = getObjectAtCell(cell);
       if (existingChild != null) {
         switch Type.getClass(existingChild) {
@@ -234,7 +241,11 @@ class Game extends Sprite {
       sortChildren();
     }, function(p:Point):Bool {
       return isValidDampePosition(p.x, p.y);
-    }, isGameActive);
+    }, isGameActive, function(dx:Float, dy:Float) {
+      if (dy != 0) {
+        cachedActionRow.clear();
+      }
+    });
     addChild(dampe);
     dampe.x = 10;
     dampe.y = 10;
@@ -406,6 +417,7 @@ class Game extends Sprite {
   public function onBeginDay(dayFrames:Int) {
     resolveState();
     ghostsReleasedToday = 0;
+    cachedActionRow.clear();
 
     this.dayFrames = dayFrames;
 
