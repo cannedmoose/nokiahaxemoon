@@ -118,6 +118,16 @@ class Game extends Sprite {
       return 0;
     };
 
+    var shouldAllowActionInOwnCell = function(action:ActionType, objectAtLocation:DisplayObject): Bool {
+      if (objectAtLocation == null) {
+        return false;
+      }
+      if (Type.getClass(objectAtLocation) != Tombstone) {
+        return false;
+      }
+      return cast(objectAtLocation, Tombstone).getState() == SANCTIFIED;
+    };
+
     // Returns null if offscreen
     var getDampeActionCell = function(intendedPos:Point, action:ActionType):Cell {
       var bestCell:Cell = null;
@@ -130,7 +140,7 @@ class Game extends Sprite {
           var potentialCellRect = CellHelper.CELL_SIZE();
           var p = cellHelper.getCellTopLeft(cell);
           potentialCellRect.offset(p.x, p.y);
-          if (potentialCellRect.intersects(dampeRect)) {
+          if (potentialCellRect.intersects(dampeRect) && !shouldAllowActionInOwnCell(action, getObjectAtCell(cell))) {
             cell.col += (dampe.isFacingRight() ? 1 : -1);
             if (cell.col < 0 || cell.col > cellHelper.getMaxCellCol()) {
               trace("Attempted to perform action offscreen");
