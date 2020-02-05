@@ -89,7 +89,17 @@ class Main extends Sprite {
   private function onKeyDown(e:KeyboardEvent) {
     switch (this.state) {
       case Title(frame):
-        if (e.keyCode == Keyboard.E && frame > 2) {
+        if (e.keyCode == Keyboard.Z) {
+          this.transition.color = WhiteColor;
+          this.gameEnd.won = true;
+          this.gameEnd.onFrame(0);
+          this.state = Transition(0, DayInfo(frame), GameOver(frame));
+        } else if (e.keyCode == Keyboard.X) {
+          this.transition.color = WhiteColor;
+          this.gameEnd.won = false;
+          this.gameEnd.onFrame(0);
+          this.state = Transition(0, DayInfo(frame), GameOver(frame));
+        } else if (e.keyCode == Keyboard.E && frame > 2) {
           trace(DayLengths[this.dayTransition.day], FrameTime, this.dayTransition.day);
           this.game.onBeginDay(Math.round(1000 * DayLengths[this.dayTransition.day] / FrameTime));
           this.transition.color = BlackColor;
