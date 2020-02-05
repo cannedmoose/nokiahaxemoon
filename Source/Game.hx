@@ -133,7 +133,9 @@ class Game extends Sprite {
         return true;
       }
       switch Type.getClass(existingChild) {
-        case Tombstone | Church:
+        case Tombstone:
+          return cast(existingChild, Tombstone).getState() == DAMAGED;
+        case Church:
           return false;
         case Grave:
           final g = cast(existingChild, Grave);
@@ -148,7 +150,17 @@ class Game extends Sprite {
       }
       var existingChild = getObjectAtCell(cell);
       if (existingChild != null) {
-        removeChild(existingChild);
+        switch Type.getClass(existingChild) {
+          case Tombstone:
+            var t = cast(existingChild, Tombstone);
+            if (t.getState() == DAMAGED) {
+              t.setState(NORMAL, t.getLinkedGhost());
+            }
+            this.statusBar.tombStones -= 1;
+            return;
+          default:
+            removeChild(existingChild);
+        }
       }
       var cellOrigin = cellHelper.getCellTopLeft(cell);
       var t = new Tombstone();
