@@ -25,12 +25,14 @@ class GameEnd extends Sprite {
   var displayBitmap:Bitmap;
   var dampe:Bitmap;
   var state:DampeState;
+  var audioManager:AudioManager;
 
   public var won:Bool;
 
-  public function new(won) {
+  public function new(won, audioManager:AudioManager) {
     super();
     this.won = won;
+    this.audioManager = audioManager;
     this.dampeSprite = Assets.getBitmapData("Assets/sunset_dampe.png");
     this.winSpriteData = Assets.getBitmapData("Assets/sunset.png");
     this.loseSpriteData = Assets.getBitmapData("Assets/overdue.png");
@@ -50,6 +52,7 @@ class GameEnd extends Sprite {
         this.state = Walking(-1, false);
         this.dampe.x = Width;
         this.dampe.y = Height - DampeHeight - 1;
+        audioManager.playVictory();
       } else {
         this.state = Walking(-1, true);
         this.dampe.x = 61;

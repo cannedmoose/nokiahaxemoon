@@ -47,11 +47,15 @@ class Main extends Sprite {
   public var transition:Transition;
   public var gameEnd:GameEnd;
 
+  var audioManager:AudioManager;
+
   public function new() {
     super();
 
+    audioManager = new AudioManager();
+
     this.shader = new NokiaShader();
-    this.game = new Game(function() {
+    this.game = new Game(audioManager, function() {
       switch this.state {
         case InGame(frame):
           return true;
@@ -68,7 +72,7 @@ class Main extends Sprite {
     this.title = new Sky();
     addChild(title);
 
-    this.gameEnd = new GameEnd(false);
+    this.gameEnd = new GameEnd(false, audioManager);
     addChild(gameEnd);
 
     this.state = Title(0);

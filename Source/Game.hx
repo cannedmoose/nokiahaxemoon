@@ -52,13 +52,13 @@ class Game extends Sprite {
     this.dampe.init();
   };
 
-  public function new(isGameActive:Void->Bool) {
+  public function new(audioManager:AudioManager, isGameActive:Void->Bool) {
     super();
 
     this.graphics.beginFill(BlackColor);
     this.graphics.drawRect(0, 0, Width, Height);
 
-    audioManager = new AudioManager();
+    this.audioManager = audioManager;
 
     Grave.lazyInit();
     Tombstone.lazyInit();

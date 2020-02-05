@@ -11,6 +11,7 @@ class AudioManager {
   private final ohNo:Sound;
   private final alert:Sound;
   private final success:Sound;
+  private final victory:Sound;
   private final backgroundMusic:Sound;
 
   private var backgroundMusicChannel:SoundChannel;
@@ -22,11 +23,16 @@ class AudioManager {
     ohNo = Assets.getSound("Assets/oh_no.mp3");
     alert = Assets.getSound("Assets/mg_alert.mp3");
     success = Assets.getSound("Assets/success.mp3");
+    victory = Assets.getSound("Assets/victory.mp3");
     resumeBackgroundMusic();
   }
 
   public function playOhNo() {
     playOneOffSound(ohNo, 1000);
+  }
+
+  public function playVictory() {
+    playOneOffSound(victory, -1);
   }
 
   public function playSuccess() {
@@ -46,7 +52,9 @@ class AudioManager {
     musicStartTime = backgroundMusicChannel.position;
     backgroundMusicChannel.stop();
     s.play(0, 1);
-    markCurrentSoundCompleteAfter(timeMS);
+    if (timeMS >= 0) {
+      markCurrentSoundCompleteAfter(timeMS);
+    }
   }
 
   private function markCurrentSoundCompleteAfter(delayMS:Int) {
