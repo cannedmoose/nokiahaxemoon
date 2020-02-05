@@ -103,7 +103,7 @@ class Main extends Sprite {
       case GameOver(frame):
         if (e.keyCode == Keyboard.E && frame > 2) {
           this.transition.color = WhiteColor;
-          this.state = Transition(0, GameOver(frame), Title(frame));
+          this.state = Transition(0, GameOver(frame), Title(0));
         }
       default:
         return;
@@ -123,8 +123,8 @@ class Main extends Sprite {
           this.dayTransition.update(this.dayTransition.day
             + 1, gravesFilled, ghostsReleased,
             this.dayTransition.money
-            + gravesFilled * 5
-            + ghostsReleased * 10);
+            + gravesFilled * 10
+            + ghostsReleased * 20);
           this.transition.color = WhiteColor;
           this.state = Transition(0, InGame(0), DayInfo(0));
         } else {

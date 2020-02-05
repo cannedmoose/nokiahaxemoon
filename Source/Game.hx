@@ -15,11 +15,11 @@ import openfl.geom.Rectangle;
 import openfl.utils.Assets;
 import CellHelper.Cell;
 
-class EndOfDayData{
+class EndOfDayData {
   public final gravesFilled:Int;
   public final ghostsReleased:Int;
 
-  public function new(gravesFilled:Int,ghostsReleased:Int) {
+  public function new(gravesFilled:Int, ghostsReleased:Int) {
     this.gravesFilled = gravesFilled;
     this.ghostsReleased = ghostsReleased;
   }
@@ -289,7 +289,7 @@ class Game extends Sprite {
 
   private function digTombstone(t:Tombstone) {
     switch t.getState() {
-      case NORMAL|DAMAGED:
+      case NORMAL | DAMAGED:
         t.onDamage();
       case SANCTIFIED:
         ghostsReleasedToday++;
@@ -304,7 +304,7 @@ class Game extends Sprite {
       var child = getChildAt(i);
       if (cellHelper.getClosestCell(child.x, child.y).isSameAs(cell)) {
         switch Type.getClass(child) {
-          case Grave|Tombstone|Church:
+          case Grave | Tombstone | Church:
             return child;
         }
       }
@@ -313,7 +313,7 @@ class Game extends Sprite {
   }
 
   // Result may be null
-  private function getGraveLinkedTombstone(g:Grave): Tombstone {
+  private function getGraveLinkedTombstone(g:Grave):Tombstone {
     final gCell = cellHelper.getClosestCell(g.x, g.y);
     if (gCell.row == 0) {
       return null;
@@ -331,14 +331,14 @@ class Game extends Sprite {
     ghostsReleasedToday = 0;
 
     // Reset dampe
-    this.statusBar.tombStones = 3;
+    this.statusBar.tombStones = 4;
     this.dampe.x = 0;
     this.dampe.y = 14;
     this.dampe.unSpook();
     this.dampe.resetState();
   }
 
-  public function onDayEnd(): EndOfDayData {
+  public function onDayEnd():EndOfDayData {
     var filledGraves = progressGraves();
     return new EndOfDayData(filledGraves, ghostsReleasedToday);
   }
@@ -430,7 +430,7 @@ class Game extends Sprite {
   }
 
   // Returns number of newly filled graves.
-  function progressGraves(): Int {
+  function progressGraves():Int {
     var gravesFilled = 0;
     var gravesToRemove:Array<Grave> = [];
     for (i in 0...numChildren) {
@@ -449,7 +449,7 @@ class Game extends Sprite {
               var ghost = createGhostAtPoint(g.x, g.y);
               t.setState(SANCTIFIED, ghost);
               gravesToRemove.push(g);
-            case DIG_1|DIG_2:
+            case DIG_1 | DIG_2:
               // nothing
           }
         }
