@@ -1,5 +1,6 @@
 package;
 
+import Game.EndOfDayData;
 import Shaders.NokiaShader;
 import Transition.Transition;
 import openfl.display.CapsStyle;
@@ -116,7 +117,8 @@ class Main extends Sprite {
         this.state = Title(frame + 1);
       case InGame(frame):
         if (frame > Game.DayFrames) {
-          var nGraves = this.game.onDayEnd();
+          var dayData = this.game.onDayEnd();
+          var nGraves = dayData.gravesFilled;
           this.dayTransition.update(this.dayTransition.day + 1, nGraves, nGraves, this.dayTransition.money + nGraves * 10);
           this.transition.color = WhiteColor;
           this.state = Transition(0, InGame(0), DayInfo(0));
