@@ -249,6 +249,12 @@ class Game extends Sprite {
             case DIG_1 | DIG_2 | HOLE:
               // nothing
           }
+        case Church:
+          var churchRect = Church.localCollider();
+          churchRect.offset(child.x, child.y);
+          if (churchRect.intersects(dampeMonsterCollisionRect)) {
+            this.statusBar.tombStones = Math.round(Math.min(this.statusBar.tombStones + 1, 4));
+          }
       }
     }
 
@@ -310,9 +316,9 @@ class Game extends Sprite {
         }
       }
       if (Type.getClass(child) == Church) {
-        if (new Cell(childCell.row, childCell.col + 1).isSameAs(cell) ||
-            new Cell(childCell.row + 1, childCell.col).isSameAs(cell) ||
-            new Cell(childCell.row + 1, childCell.col + 1).isSameAs(cell)) {
+        if (new Cell(childCell.row, childCell.col + 1).isSameAs(cell)
+          || new Cell(childCell.row + 1, childCell.col).isSameAs(cell)
+          || new Cell(childCell.row + 1, childCell.col + 1).isSameAs(cell)) {
           return child;
         }
       }
