@@ -23,6 +23,7 @@ enum State {
   Title(frame:Int);
   InGame(frame:Int);
   DayInfo(frame:Int);
+  GameOver(frame:Int);
   Transition(frame:Int, current:State, next:State);
 }
 
@@ -36,6 +37,7 @@ class Main extends Sprite {
   public var dayTransition:DayTransition;
   public var title:Sky;
   public var transition:Transition;
+  public var gameEnd:GameEnd;
 
   public function new() {
     super();
@@ -57,6 +59,9 @@ class Main extends Sprite {
     addChild(transition);
     this.title = new Sky();
     addChild(title);
+
+    this.gameEnd = new GameEnd(false);
+    addChild(gameEnd);
 
     this.state = Title(0);
 
@@ -83,9 +88,21 @@ class Main extends Sprite {
         }
       case DayInfo(frame):
         if (e.keyCode == Keyboard.E && frame > 2) {
-          this.game.onBeginDay();
-          this.transition.color = BlackColor;
-          this.state = Transition(0, DayInfo(frame), InGame(0));
+          if (this.dayTransition.day < 13) {
+            this.game.onBeginDay();
+            this.transition.color = BlackColor;
+            this.state = Transition(0, DayInfo(frame), InGame(0));
+          } else {
+            this.transition.color = WhiteColor;
+            this.gameEnd.won = this.dayTransition.money >= 666;
+            this.gameEnd.onFrame(0);
+            this.state = Transition(0, DayInfo(frame), GameOver(frame));
+          }
+        }
+      case GameOver(frame):
+        if (e.keyCode == Keyboard.E && frame > 2) {
+          this.transition.color = WhiteColor;
+          this.state = Transition(0, GameOver(frame), Title(frame));
         }
       default:
         return;
@@ -117,6 +134,9 @@ class Main extends Sprite {
         } else {
           this.state = Transition(frame + 1, from, to);
         }
+      case GameOver(frame):
+        this.gameEnd.onFrame(frame);
+        this.state = GameOver(frame + 1);
     }
     removeChildren();
     switch (this.state) {
@@ -126,6 +146,8 @@ class Main extends Sprite {
         addChild(this.game);
       case DayInfo(frame):
         addChild(this.dayTransition);
+      case GameOver(frame):
+        addChild(this.gameEnd);
       case Transition(frame, from, to):
         if (frame <= 5) {
           switch (from) {
@@ -135,6 +157,8 @@ class Main extends Sprite {
               addChild(this.game);
             case DayInfo(frame):
               addChild(this.dayTransition);
+            case GameOver(frame):
+              addChild(this.gameEnd);
             default:
               addChild(this.game);
           }
@@ -146,6 +170,8 @@ class Main extends Sprite {
               addChild(this.game);
             case DayInfo(frame):
               addChild(this.dayTransition);
+            case GameOver(frame):
+              addChild(this.gameEnd);
             default:
               addChild(this.game);
           }
