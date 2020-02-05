@@ -145,7 +145,7 @@ class Dampe extends Sprite {
         } else {
           if (frame == 2) {
             // Spawn hole
-            var actionPoint = flip ? new Point(13, 11) : new Point(3, 11);
+            var actionPoint = flip ? new Point(13, 10) : new Point(3, 10);
             this.digCallback(actionPoint);
           }
           this.state = Digging((frame + 1) % 7);
