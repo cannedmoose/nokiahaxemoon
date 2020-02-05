@@ -40,6 +40,7 @@ class Tombstone extends Sprite {
   }
 
   private var state:TombstoneState = TombstoneState.NORMAL;
+  private var ghost:Ghost = null;
 
   public function new() {
     super();
@@ -51,7 +52,7 @@ class Tombstone extends Sprite {
   public function onDamage() {
     switch state {
       case NORMAL:
-        setState(DAMAGED);
+        setState(DAMAGED, ghost);
       case DAMAGED | SANCTIFIED:
         // nothing
     }
@@ -69,13 +70,18 @@ class Tombstone extends Sprite {
         TOMBSTONE_WIDTH + 1, tombstoneCollidingHeight + 1);
   }
 
-  public function setState(state:TombstoneState) {
+  public function setState(state:TombstoneState, ghost:Ghost) {
+    this.ghost = ghost;
     if (state == this.state) {
       return;
     }
 
     this.state = state;
     updateRenderSprite();
+  }
+
+  public function getLinkedGhost():Ghost {
+    return ghost;
   }
 
   private function updateRenderSprite() {

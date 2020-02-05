@@ -15,6 +15,16 @@ import openfl.geom.Rectangle;
 import openfl.utils.Assets;
 import CellHelper.Cell;
 
+class EndOfDayData{
+  public final gravesFilled:Int;
+  public final ghostsReleased:Int;
+
+  public function new(gravesFilled:Int,ghostsReleased:Int) {
+    this.gravesFilled = gravesFilled;
+    this.ghostsReleased = ghostsReleased;
+  }
+}
+
 class Game extends Sprite {
   public static inline var WhiteColor = 0xc7f0d8;
   public static inline var BlackColor = 0x43523d;
@@ -24,6 +34,8 @@ class Game extends Sprite {
   private static final cellHelper = new CellHelper(Width, Height);
 
   public static inline var DayFrames = 200;
+
+  private var ghostsReleasedToday = 0;
 
   var dampe:Dampe;
   var audioManager:AudioManager;
@@ -84,24 +96,29 @@ class Game extends Sprite {
         return;
       }
       var worldPos = cellHelper.getCellCenter(digCell);
-      var existingGrave = findGraveHoleIntersecting(worldPos);
-      if (existingGrave != null) {
-        switch existingGrave.getState() {
-          case DIG_1:
-            existingGrave.setState(DIG_2);
-          case DIG_2:
-            existingGrave.setState(HOLE);
-          case HOLE:
-          case SPAWN_PROGRESS_1 | SPAWN_PROGRESS_2:
-            var t = getGraveLinkedTombstone(existingGrave);
-            if (t != null) {
-              t.onDamage();
+      var existingObject = getObjectAtCell(digCell);
+      if (existingObject != null) {
+        switch Type.getClass(existingObject) {
+          case Grave:
+            var existingGrave = cast(existingObject, Grave);
+            switch existingGrave.getState() {
+              case DIG_1:
+                existingGrave.setState(DIG_2);
+              case DIG_2:
+                existingGrave.setState(HOLE);
+              case HOLE:
+              case SPAWN_PROGRESS_1 | SPAWN_PROGRESS_2:
+                var t = getGraveLinkedTombstone(existingGrave);
+                if (t != null) {
+                  t.onDamage();
+                }
             }
+          case Tombstone:
+            var t = cast(existingObject, Tombstone);
+            digTombstone(t);
         }
       } else {
-        if (getObjectAtCell(digCell) == null) {
-          createGraveAtPoint(worldPos);
-        }
+        createGraveAtPoint(worldPos);
       }
     }, function(p:Point):Bool {
       if (this.statusBar.tombStones <= 0) {
@@ -258,6 +275,17 @@ class Game extends Sprite {
     this.statusBar.onFrame(1 - (frame / DayFrames));
   }
 
+  private function digTombstone(t:Tombstone) {
+    switch t.getState() {
+      case NORMAL|DAMAGED:
+        t.onDamage();
+      case SANCTIFIED:
+        ghostsReleasedToday++;
+        removeChild(t.getLinkedGhost());
+        removeChild(t);
+    }
+  }
+
   private function getObjectAtCell(cell:Cell):DisplayObject {
     for (i in 0...numChildren) {
       var child = getChildAt(i);
@@ -287,6 +315,7 @@ class Game extends Sprite {
 
   public function onBeginDay() {
     resolveState();
+    ghostsReleasedToday = 0;
 
     // Reset dampe
     this.statusBar.tombStones = 3;
@@ -296,8 +325,9 @@ class Game extends Sprite {
     this.dampe.resetState();
   }
 
-  public function onDayEnd(): Int {
-    return progressGraves();
+  public function onDayEnd(): EndOfDayData {
+    var filledGraves = progressGraves();
+    return new EndOfDayData(filledGraves, ghostsReleasedToday);
   }
 
   function ghostsOnFrame() {
@@ -386,9 +416,9 @@ class Game extends Sprite {
     return null;
   }
 
-  // Returns number of newly "SANCTIFIED" graves.
+  // Returns number of newly filled graves.
   function progressGraves(): Int {
-    var count = 0;
+    var gravesFilled = 0;
     var gravesToRemove:Array<Grave> = [];
     for (i in 0...numChildren) {
       var child = getChildAt(i);
@@ -398,14 +428,14 @@ class Game extends Sprite {
         if (t != null && t.getState() == NORMAL) {
           switch g.getState() {
             case HOLE:
+              gravesFilled++;
               g.setState(SPAWN_PROGRESS_1);
             case SPAWN_PROGRESS_1:
               g.setState(SPAWN_PROGRESS_2);
             case SPAWN_PROGRESS_2:
-              t.setState(SANCTIFIED);
+              var ghost = createGhostAtPoint(g.x, g.y);
+              t.setState(SANCTIFIED, ghost);
               gravesToRemove.push(g);
-              createGhostAtPoint(g.x, g.y);
-              count++;
             case DIG_1|DIG_2:
               // nothing
           }
@@ -415,6 +445,6 @@ class Game extends Sprite {
     for (g in gravesToRemove) {
       removeChild(g);
     }
-    return count;
+    return gravesFilled;
   }
 }
