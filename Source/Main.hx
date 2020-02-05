@@ -120,7 +120,11 @@ class Main extends Sprite {
           var dayData = this.game.onDayEnd();
           var gravesFilled = dayData.gravesFilled;
           var ghostsReleased = dayData.ghostsReleased;
-          this.dayTransition.update(this.dayTransition.day + 1, gravesFilled, ghostsReleased, this.dayTransition.money + nGraves * 10);
+          this.dayTransition.update(this.dayTransition.day
+            + 1, gravesFilled, ghostsReleased,
+            this.dayTransition.money
+            + gravesFilled * 5
+            + ghostsReleased * 10);
           this.transition.color = WhiteColor;
           this.state = Transition(0, InGame(0), DayInfo(0));
         } else {
