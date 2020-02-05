@@ -149,7 +149,7 @@ class Game extends Sprite {
       return bestCell;
     };
 
-    this.statusBar = new StatusBar(4);
+    this.statusBar = new StatusBar(3);
     this.addChild(statusBar);
 
     this.dampe = new Dampe(function(point) {
@@ -316,7 +316,7 @@ class Game extends Sprite {
           var churchRect = Church.localCollider();
           churchRect.offset(child.x, child.y);
           if (churchRect.intersects(dampeMonsterCollisionRect)) {
-            this.statusBar.tombStones = Math.round(Math.min(this.statusBar.tombStones + 1, 4));
+            this.statusBar.tombStones = Math.round(Math.min(this.statusBar.tombStones + 1, 3));
           }
       }
     }
@@ -410,7 +410,7 @@ class Game extends Sprite {
     this.dayFrames = dayFrames;
 
     // Reset dampe
-    this.statusBar.tombStones = 4;
+    this.statusBar.tombStones = 3;
     this.dampe.x = 0;
     this.dampe.y = 14;
     this.dampe.unSpook();

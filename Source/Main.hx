@@ -131,7 +131,7 @@ class Main extends Sprite {
           this.dayTransition.update(this.dayTransition.day
             + 1, gravesFilled, ghostsReleased,
             this.dayTransition.money
-            + gravesFilled * 10
+            + gravesFilled * 5
             + ghostsReleased * 20);
           this.transition.color = WhiteColor;
           this.state = Transition(0, InGame(0), DayInfo(0));
