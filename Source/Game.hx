@@ -122,7 +122,7 @@ class Game extends Sprite {
       var bestScore = -2;
       var dampeRect = dampe.parentSpaceMovementCollider().clone();
       dampeRect.inflate(0, 30);
-      for (searchDist in 0...4) {
+      for (searchDist in 0...3) {
         for (searchDir in [-1, 1]) {
           var cell = cellHelper.getClosestCell(dampe.x + intendedPos.x, dampe.y + intendedPos.y + searchDist * searchDir);
           var potentialCellRect = CellHelper.CELL_SIZE();
