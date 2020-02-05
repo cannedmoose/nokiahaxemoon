@@ -28,5 +28,7 @@
 	<assets path="Assets/title.png" />
 	<assets path="Assets/press_e.png" />
 	<assets path="Assets/small_tomb.png" />
+	<assets path="Assets/sunset.png" />
+	<assets path="Assets/overdue.png" />
 	
 </project>
