@@ -52,7 +52,7 @@ class Main extends Sprite {
     });
     addChild(game);
     this.game.init();
-    this.dayTransition = new DayTransition(0, 0, 0);
+    this.dayTransition = new DayTransition(0, 0, 0, 0);
     addChild(dayTransition);
     this.transition = new Transition(0x43523d);
     addChild(transition);
@@ -102,7 +102,7 @@ class Main extends Sprite {
         if (frame > Game.DayFrames) {
           var dayData = this.game.onDayEnd();
           var nGraves = dayData.gravesFilled;
-          this.dayTransition.update(this.dayTransition.day + 1, nGraves, this.dayTransition.money + nGraves * 10);
+          this.dayTransition.update(this.dayTransition.day + 1, nGraves, nGraves, this.dayTransition.money + nGraves * 10);
           this.transition.color = WhiteColor;
           this.state = Transition(0, InGame(0), DayInfo(0));
         } else {
