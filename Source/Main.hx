@@ -36,7 +36,7 @@ class Main extends Sprite {
   public static inline var BlackColor = 0x43523d;
 
   // Day lengths in seconds
-  public static var DayLengths:ReadOnlyArray<Int> = [80, 60, 60, 50, 50, 40, 40, 40, 40, 30, 30, 30, 20];
+  public static var DayLengths:ReadOnlyArray<Int> = [80, 60, 60, 50, 50, 40, 40, 40, 40, 40, 30, 30, 30];
 
   // Milliseconds in a frame
   public static inline var FrameTime = 200;

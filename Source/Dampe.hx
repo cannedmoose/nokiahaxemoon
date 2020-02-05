@@ -52,7 +52,7 @@ class Dampe extends Sprite {
   var movementListener:(dx:Float, dy:Float) -> Void;
 
   var spookedCountdown = 0;
-  var skipFrame = false;
+  var skipFrame = 0;
 
   var pressedKeys:Map<Int, KeyState> = new Map();
 
@@ -110,14 +110,14 @@ class Dampe extends Sprite {
     if (spookedCountdown <= 0) {
       trace("spooky!");
       spookedCountdown = SPOOK_DURATION_FRAMES;
-      skipFrame = true;
+      skipFrame = 0;
       return true;
     }
     return false;
   }
 
   public function unSpook() {
-    skipFrame = false;
+    skipFrame = 0;
     spookedCountdown = 0;
   }
 
@@ -132,10 +132,10 @@ class Dampe extends Sprite {
       spookedCountdown--;
     }
     if (spookedCountdown > 0) {
-      this.sprite.alpha = skipFrame ? 0 : 1;
+      this.sprite.alpha = skipFrame % 2 == 1 ? 0 : 1;
 
-      skipFrame = !skipFrame;
-      if (!skipFrame) {
+      skipFrame = skipFrame + 1;
+      if (skipFrame % 5 == 1) {
         return;
       }
     } else {
