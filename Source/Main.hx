@@ -123,10 +123,12 @@ class Main extends Sprite {
           }
         }
       case GameOver(frame):
+      /*
         if (e.keyCode == Keyboard.E && frame > 2) {
           this.transition.color = WhiteColor;
           this.state = Transition(0, GameOver(frame), Title(0));
         }
+        */
       default:
         return;
     }
